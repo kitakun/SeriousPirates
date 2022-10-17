@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
-import GameScene from './scenes/HelloWorld';
+import { registerCustomComponents } from "./components";
+import GameScene from './scenes/gameScene';
+
+registerCustomComponents();
 
 const gameConfig = {
   type: Phaser.WEBGL,

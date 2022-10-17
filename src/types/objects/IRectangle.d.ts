@@ -1,0 +1,1 @@
+declare interface IRectangle extends ISize, IVector2 { }
