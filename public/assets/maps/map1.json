@@ -33,7 +33,7 @@
         {
          "draworder":"topdown",
          "id":3,
-         "name":"cities",
+         "name":"GameObjects",
          "objects":[
                 {
                  "class":"City",
@@ -70,6 +70,24 @@
                  "width":0,
                  "x":844,
                  "y":1838.67
+                }, 
+                {
+                 "class":"Ship",
+                 "height":0,
+                 "id":4,
+                 "name":"Player",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"isPlayer",
+                         "type":"bool",
+                         "value":true
+                        }],
+                 "rotation":0,
+                 "visible":true,
+                 "width":0,
+                 "x":869.090517228691,
+                 "y":821.396059846297
                 }],
          "offsetx":1.33333,
          "offsety":1.33333,
@@ -80,7 +98,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":4,
+ "nextobjectid":5,
  "orientation":"orthogonal",
  "properties":[
         {

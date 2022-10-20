@@ -35,8 +35,13 @@ export default class GameScene extends Phaser.Scene {
     this.world = parseTiledMapToWorld('map', ['glBlocks', 'islandBlocks'], this.game.cache.json);
     console.log('Here constructed world', this.world);
 
+    const xyOffset = {
+      x: (this.scale.gameSize.width - this.render.mapOverlaySize.width) / 2,
+      y: (this.scale.gameSize.height - this.render.mapOverlaySize.height) / 2,
+    } as IVector2;
+
     // graphics
-    this.render.create(this.world);
+    this.render.create(this.world, xyOffset);
 
     // debug stuff
     this.txt_label = this.render.addToLayer(this.add.text(120, 10, 'hi').setScrollFactor(0).setColor('black'), GameLayersOrderEnum.UI);
@@ -48,8 +53,8 @@ export default class GameScene extends Phaser.Scene {
       this.cameras.main,
       this.world.worldSizeInPixels,
       {
-        x: (this.scale.gameSize.width - this.render.mapOverlaySize.width) / 2,
-        y: (this.scale.gameSize.height - this.render.mapOverlaySize.height) / 2,
+        x: xyOffset.x,
+        y: xyOffset.y,
         width: this.render.mapOverlaySize.width,
         height: this.render.mapOverlaySize.height,
       });
@@ -71,7 +76,6 @@ export default class GameScene extends Phaser.Scene {
       this.control_input.direction.y * CAMERA_MOVE_SPEED)
 
     this.txt_label.setText([
-      `world=${JSON.stringify(this.control_camera.position)}`
     ]);
   }
 }
