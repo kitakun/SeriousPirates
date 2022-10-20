@@ -6,6 +6,7 @@ declare module Tiled {
         id: number;
         name: string;
         point: boolean;
+        properties: Property[];
         rotation: number;
         visible: boolean;
         width: number;

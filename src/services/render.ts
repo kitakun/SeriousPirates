@@ -1,4 +1,4 @@
-import PiratesWorld from "../data/world";
+import PiratesWorld from "../model/data/world";
 import { drawCornerRect } from "../utils";
 
 const MAP_OVERLAY_INTERNAL_FRAME_SIZE = { width: 666, height: 496 } as ISize;

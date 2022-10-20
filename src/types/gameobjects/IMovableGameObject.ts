@@ -8,4 +8,8 @@ export default class IMovableGameObject implements IGameObject {
     set position(value: IVector2) {
         this._position = value;
     }
+
+    constructor(initialPosition: IVector2) {
+        this._position = initialPosition;
+    }
 }

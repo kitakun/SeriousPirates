@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import Camera from '../components/control/camera';
 import PlayerInput from '../components/control/playerInput';
-import PiratesWorld from '../data/world';
+import PiratesWorld from '../model/data/world';
 import { parseTiledMapToWorld } from '../services/loader';
 import PiratesRender, { GameLayersOrderEnum } from '../services/render';
 
@@ -33,6 +33,7 @@ export default class GameScene extends Phaser.Scene {
   create() {
     // data
     this.world = parseTiledMapToWorld('map', ['glBlocks', 'islandBlocks'], this.game.cache.json);
+    console.log('Here constructed world', this.world);
 
     // graphics
     this.render.create(this.world);

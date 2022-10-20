@@ -1,6 +1,7 @@
-import { TILE_SIZE } from "../constants";
+import { TILE_SIZE } from "../../constants";
 import City from "./city";
 import Island from "./island";
+import { PirateGameObject } from "./object";
 
 const DEFAULT_WORLD_SIZE = { width: 960, height: 1240 };
 
@@ -14,6 +15,7 @@ export default class PiratesWorld {
 
     public readonly islands: Island[] = [];
     public readonly cities: City[] = [];
+    public readonly objects: PirateGameObject[] = [];
 
     constructor(
         public readonly worldName: string = 'DefaultWorldName',

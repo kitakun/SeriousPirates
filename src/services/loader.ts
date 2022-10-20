@@ -1,7 +1,8 @@
 import { TILE_SIZE } from "../constants";
-import City from "../data/city";
-import Island from "../data/island";
-import PiratesWorld from "../data/world";
+import City from "../model/data/city";
+import Island from "../model/data/island";
+import { PirateGameObject } from "../model/data/object";
+import PiratesWorld from "../model/data/world";
 import { base64ToByteArray } from "../utils";
 import ImageCollection from "./imageCollection";
 
@@ -45,31 +46,39 @@ export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string
                 }
                 break;
 
-            case 'cities':
+            default:
                 {
                     const objects = layer.objects;
-                    for (const cityObject of objects) {
-                        if (cityObject.class !== 'City')
-                            continue;
+                    if (objects && objects.length > 0) {
+                        for (const cityObject of objects) {
+                            switch (cityObject.class) {
+                                case 'City':
+                                    world.cities.push(new City(
+                                        cityObject.name,
+                                        {
+                                            x: cityObject.x,
+                                            y: cityObject.y
+                                        }
+                                    ));
+                                    break;
 
-                        const newCity = new City(
-                            cityObject.name,
-                            {
-                                x: cityObject.x,
-                                y: cityObject.y
+                                case 'Ship':
+                                    world.objects.push(new PirateGameObject(
+                                        cityObject.name,
+                                        cityObject.class,
+                                        {
+                                            x: cityObject.x,
+                                            y: cityObject.y
+                                        },
+                                        cityObject.properties
+                                    ));
+                                    break;
                             }
-                        );
-
-                        world.cities.push(newCity);
+                        }
+                    } else {
+                        console.warn(`Layer=${layer.name} don't contains objects and it's neither collision nor islands. What should I do with it?`);
                     }
                 }
-                break;
-
-            default:
-                const islands2 = internalTiledToArrays(layer);
-                console.log('test parse', islands2);
-
-                console.error(`Layer name=${layer.name} not implemented! is it a bug?`);
                 break;
         }
     }
