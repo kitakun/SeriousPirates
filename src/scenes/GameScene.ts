@@ -61,11 +61,19 @@ export default class GameScene extends Phaser.Scene {
         height: this.render.mapOverlaySize.height,
       });
     this.control_input = new PlayerInput(this.input);
-    this.control_input.onClick((isHold, clickPos) => {
+    this.control_input.onClick((isHold, rawClickPos) => {
       let gamePos = { x: 0, y: 0 };
-      if (isHold && this.control_camera.tryScreenToGamaPosition(clickPos, gamePos)) {
+      let gameScreenPos = { x: 0, y: 0 };
+
+      if (isHold
+        && this.control_camera.tryScreenToGamaPosition(rawClickPos, gamePos)
+        && this.control_camera.tryScreenToActualGameScreenPosition(rawClickPos, gameScreenPos)) {
         {
           this.render.addToLayer(this.add.circle(gamePos.x, gamePos.y, 5, 0x66ff66, 1), GameLayersOrderEnum.UI);
+
+          this.txt_label.setText([
+            `Click on tile=${JSON.stringify(this.world.worldToTilePos(gameScreenPos))}`
+          ]);
         }
       }
     });
@@ -90,6 +98,5 @@ export default class GameScene extends Phaser.Scene {
       this.control_input.direction.x * CAMERA_MOVE_SPEED,
       this.control_input.direction.y * CAMERA_MOVE_SPEED)
 
-    this.txt_label.setText([]);
   }
 }

@@ -12,7 +12,8 @@ export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string
 
     const world = new WorldDefinition(
         map.properties?.find(f => f.name === 'name')?.value,
-        { width: map.width, height: map.height }
+        { width: map.tilewidth, height: map.tileheight },
+        { width: map.width, height: map.height },
     );
 
     const parsedTilesets = tilesets.map(m => parseTileset(m, map));

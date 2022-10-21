@@ -79,6 +79,12 @@ export default class Camera {
 
     // helpers
 
+    /**
+     * Convert raw click to in game field in pixels
+     * @param clickPos cursor click position [from (x:0,y:0) to (x:gameWidth, y:gameHeight)]
+     * @param gamePos *out ref parameter* - actual in game position in pixels
+     * @returns true - if player clicks in game screen
+     */
     public tryScreenToGamaPosition(clickPos: IVector2, gamePos: IVector2): boolean {
         const convertedPos = {
             x: clickPos.x + this._x + this._pan.x,
@@ -89,6 +95,27 @@ export default class Camera {
             && convertedPos.y > this._bounds.y
             && convertedPos.y < this.gameSize.height - this._bounds.y
             && convertedPos.x < this.gameSize.width - this._bounds.x) {
+            Object.assign(gamePos, convertedPos);
+            return true;
+        }
+
+        return false;
+    }
+
+    /** 
+     * convert screen-click-point 
+     * [from (x:0,y0): to (x:width,y:height)]
+     * to game frame [from (x:120,y:120) to (x:width-120, y:height-120)]
+    */
+    public tryScreenToActualGameScreenPosition(clickPos: IVector2, gamePos: IVector2): boolean {
+        const convertedPos = {
+            x: clickPos.x - this._bounds.x + this._pan.x + this._x,
+            y: clickPos.y - this._bounds.y + this._pan.y + this._y,
+        }
+        const { width: gameWidth, height: gameHeight } = this.scale.gameSize;
+
+        if (clickPos.x < gameWidth - this._bounds.x
+            && clickPos.y < gameHeight - this._bounds.y) {
             Object.assign(gamePos, convertedPos);
             return true;
         }
