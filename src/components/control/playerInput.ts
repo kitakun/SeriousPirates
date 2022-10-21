@@ -1,4 +1,7 @@
 export default class PlayerInput {
+    private readonly _events = new Map<InputEventsEnum, Function[]>();
+    private _isHoldClick = false;
+
     public get direction(): IVector2 {
         return this._direction;
     }
@@ -14,6 +17,21 @@ export default class PlayerInput {
 
     public update(time: number, delta: number): void {
         this._direction = this.getArrowsDirection();
+
+        const prevIsHoldClick = this._isHoldClick;
+        this._isHoldClick = this.input.activePointer.leftButtonDown();
+        if (this._isHoldClick !== prevIsHoldClick && this._events.has(InputEventsEnum.Click)) {
+            const { x: curX, y: curY } = this.input.activePointer.position;
+            this._events.get(InputEventsEnum.Click)?.forEach(cb => cb(this._isHoldClick, { x: curX, y: curY }));
+        }
+    }
+
+    public onClick(callback: (isHold: boolean, pos: { x: number, y: number }) => void): void {
+        if (!this._events.has(InputEventsEnum.Click)) {
+            this._events.set(InputEventsEnum.Click, []);
+        }
+
+        this._events.get(InputEventsEnum.Click)?.push(callback);
     }
 
     private getArrowsDirection(): IVector2 {
@@ -34,4 +52,9 @@ export default class PlayerInput {
 
         return { x: horizontal, y: vertical };
     }
+}
+
+enum InputEventsEnum {
+    Unknown = 0,
+    Click = 1,
 }

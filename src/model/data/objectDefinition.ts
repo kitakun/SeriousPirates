@@ -1,4 +1,6 @@
-export class PirateGameObject {
+import { IDefinitionGameObject } from "./IDefinitionGameObject";
+
+export class GameObjectDefinition implements IDefinitionGameObject {
     constructor(
         public readonly name: string,
         public readonly className: string,

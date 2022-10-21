@@ -1,11 +1,13 @@
-import PiratesWorld from "../model/data/world";
+import { IDefinitionGameObject } from "../model/data/IDefinitionGameObject";
+import { GameObjectDefinition } from "../model/data/objectDefinition";
+import WorldDefinition from "../model/data/worldDefinition";
 import { drawCorner, drawCornerRect } from "../utils";
 
 const MAP_OVERLAY_INTERNAL_FRAME_SIZE = { width: 666, height: 496 } as ISize;
 
 export default class PiratesRender {
     // data
-    private world!: PiratesWorld;
+    private world!: WorldDefinition;
 
     // graphics
     private layers: Phaser.GameObjects.Layer[] = [];
@@ -38,7 +40,7 @@ export default class PiratesRender {
         this.scene.scale.on('resize', this.resize, this);
     }
 
-    public create(world: PiratesWorld, xyOffset: IVector2 = { x: 0, y: 0 }): void {
+    public create(world: WorldDefinition, xyOffset: IVector2 = { x: 0, y: 0 }): void {
         this.world = world;
         this._xyOffset = xyOffset;
         this.cache_objects = [];
@@ -115,7 +117,7 @@ export default class PiratesRender {
                 .setOrigin(0.5, 0.5);
 
             this.cache_objects.push({
-                data: createdCityGraphics,
+                data: dataAboutObject,
                 graphics: gameLayer.add(createdCityGraphics),
                 type: GraphicTypeEnum.Circle,
             });
@@ -149,6 +151,10 @@ export default class PiratesRender {
         return go;
     }
 
+    public findGraphicByCondition(condition: (info: IDefinitionGameObject) => boolean): DataToGraphicStruct | undefined {
+        return this.cache_objects.find(f => condition(f.data));
+    }
+
     private resize(gameSize: Phaser.Structs.Size, baseSize: Phaser.Structs.Size, displaySize: Phaser.Structs.Size) {
         this.applyScales();
     }
@@ -173,7 +179,7 @@ export enum GameLayersOrderEnum {
 
 interface DataToGraphicStruct {
     graphics: Phaser.GameObjects.GameObject;
-    data: IGameObject;
+    data: IDefinitionGameObject;
     type: GraphicTypeEnum;
 }
 

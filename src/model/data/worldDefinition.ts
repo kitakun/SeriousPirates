@@ -1,11 +1,11 @@
 import { TILE_SIZE } from "../../constants";
-import City from "./city";
-import Island from "./island";
-import { PirateGameObject } from "./object";
+import CityDefinition from "./cityDefinition";
+import IslandDefinition from "./islandDefinition";
+import { GameObjectDefinition } from "./objectDefinition";
 
 const DEFAULT_WORLD_SIZE = { width: 960, height: 1240 };
 
-export default class PiratesWorld {
+export default class WorldDefinition {
     public get worldSizeInPixels(): ISize {
         return {
             width: this.worldSize.width * TILE_SIZE,
@@ -13,9 +13,9 @@ export default class PiratesWorld {
         }
     }
 
-    public readonly islands: Island[] = [];
-    public readonly cities: City[] = [];
-    public readonly objects: PirateGameObject[] = [];
+    public readonly islands: IslandDefinition[] = [];
+    public readonly cities: CityDefinition[] = [];
+    public readonly objects: GameObjectDefinition[] = [];
 
     constructor(
         public readonly worldName: string = 'DefaultWorldName',

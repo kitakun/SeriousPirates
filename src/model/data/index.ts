@@ -1,4 +1,4 @@
-export * from './city';
-export * from './island';
+export * from './cityDefinition';
+export * from './islandDefinition';
 export * from './path';
-export * from './world';
+export * from './worldDefinition';

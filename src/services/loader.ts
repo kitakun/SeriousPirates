@@ -1,16 +1,16 @@
 import { TILE_SIZE } from "../constants";
-import City from "../model/data/city";
-import Island from "../model/data/island";
-import { PirateGameObject } from "../model/data/object";
-import PiratesWorld from "../model/data/world";
+import CityDefinition from "../model/data/cityDefinition";
+import IslandDefinition from "../model/data/islandDefinition";
+import { GameObjectDefinition } from "../model/data/objectDefinition";
+import WorldDefinition from "../model/data/worldDefinition";
 import { base64ToByteArray } from "../utils";
 import ImageCollection from "./imageCollection";
 
-export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string[], cache: Phaser.Cache.BaseCache): PiratesWorld => {
+export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string[], cache: Phaser.Cache.BaseCache): WorldDefinition => {
     const map: Tiled.Map = cache.get(mapName);
     const tilesets: Tiled.TilesetObject[] = tilesetsCacheNames.map(m => cache.get(m));
 
-    const world = new PiratesWorld(
+    const world = new WorldDefinition(
         map.properties?.find(f => f.name === 'name')?.value,
         { width: map.width, height: map.height }
     );
@@ -39,7 +39,7 @@ export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string
                         if (!tileName)
                             continue;
 
-                        const newIslandData = new Island(tileName, { x: data.x * TILE_SIZE, y: data.y * TILE_SIZE });
+                        const newIslandData = new IslandDefinition(tileName, { x: data.x * TILE_SIZE, y: data.y * TILE_SIZE });
 
                         world.islands.push(newIslandData);
                     }
@@ -50,27 +50,27 @@ export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string
                 {
                     const objects = layer.objects;
                     if (objects && objects.length > 0) {
-                        for (const cityObject of objects) {
-                            switch (cityObject.class) {
+                        for (const parsedObject of objects) {
+                            switch (parsedObject.class) {
                                 case 'City':
-                                    world.cities.push(new City(
-                                        cityObject.name,
+                                    world.cities.push(new CityDefinition(
+                                        parsedObject.name,
                                         {
-                                            x: cityObject.x,
-                                            y: cityObject.y
+                                            x: parsedObject.x,
+                                            y: parsedObject.y
                                         }
                                     ));
                                     break;
 
                                 case 'Ship':
-                                    world.objects.push(new PirateGameObject(
-                                        cityObject.name,
-                                        cityObject.class,
+                                    world.objects.push(new GameObjectDefinition(
+                                        parsedObject.name,
+                                        parsedObject.class,
                                         {
-                                            x: cityObject.x,
-                                            y: cityObject.y
+                                            x: parsedObject.x,
+                                            y: parsedObject.y
                                         },
-                                        cityObject.properties
+                                        parsedObject.properties
                                     ));
                                     break;
                             }

@@ -5,6 +5,7 @@ export default class Camera {
     private _y: number = 0;
 
     private _bounds: IRectangle;
+    private _pan: IVector2 = { x: 0, y: 0 };
 
     public AllowedOffset: number = 100;
     public get position(): IVector2 {
@@ -34,6 +35,21 @@ export default class Camera {
         this._y = y;
     }
 
+    public lookAt(x: number, y: number) {
+        const { width: gameWidth, height: gameHeight } = this.gameSize;
+        const { width: viewWidth, height: viewHeight } = this.scale.gameSize;
+
+
+        this._x = Phaser.Math.Clamp(
+            x - this._bounds.width / 2 - this.AllowedOffset / 2,
+            0,
+            gameWidth - viewWidth - this.AllowedOffset + PADDING);
+        this._y = Phaser.Math.Clamp(
+            y - this._bounds.height / 2 - this.AllowedOffset / 2,
+            0,
+            gameHeight - viewHeight - this.AllowedOffset + PADDING);
+    }
+
     public updatePosition(x: number, y: number) {
         const { width: gameWidth, height: gameHeight } = this.gameSize;
         const { width: viewWidth, height: viewHeight } = this.scale.gameSize;
@@ -50,12 +66,33 @@ export default class Camera {
         const actualGameScreenY = gameHeight - (this._bounds.y * 2);
 
         // mouse offset
-        const xCoef = Math.min(1, Math.max(0, mousePosX - this._bounds.x) / actualGameScreenX);
-        const yCoef = Math.min(1, Math.max(0, mousePosY - this._bounds.y) / actualGameScreenY);
+        this._pan = {
+            x: Math.min(1, Math.max(0, mousePosX - this._bounds.x) / actualGameScreenX) * this.AllowedOffset,
+            y: Math.min(1, Math.max(0, mousePosY - this._bounds.y) / actualGameScreenY) * this.AllowedOffset,
+        };
 
         this.camera.setScroll(
-            this._x + xCoef * this.AllowedOffset,
-            this._y + yCoef * this.AllowedOffset
+            this._x + this._pan.x,
+            this._y + this._pan.y
         )
+    }
+
+    // helpers
+
+    public tryScreenToGamaPosition(clickPos: IVector2, gamePos: IVector2): boolean {
+        const convertedPos = {
+            x: clickPos.x + this._x + this._pan.x,
+            y: clickPos.y + this._y + this._pan.y,
+        }
+
+        if (convertedPos.x > this._bounds.x
+            && convertedPos.y > this._bounds.y
+            && convertedPos.y < this.gameSize.height - this._bounds.y
+            && convertedPos.x < this.gameSize.width - this._bounds.x) {
+            Object.assign(gamePos, convertedPos);
+            return true;
+        }
+
+        return false;
     }
 }

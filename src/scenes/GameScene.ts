@@ -1,13 +1,15 @@
 import Phaser from 'phaser';
 import Camera from '../components/control/camera';
 import PlayerInput from '../components/control/playerInput';
-import PiratesWorld from '../model/data/world';
+import { GameObjectDefinition } from '../model/data/objectDefinition';
+import WorldDefinition from '../model/data/worldDefinition';
+import { Ship } from '../model/dynamic/ship';
 import { parseTiledMapToWorld } from '../services/loader';
 import PiratesRender, { GameLayersOrderEnum } from '../services/render';
 
 export default class GameScene extends Phaser.Scene {
   // data
-  private world!: PiratesWorld;
+  private world!: WorldDefinition;
 
   // graphics
   private render!: PiratesRender;
@@ -59,6 +61,19 @@ export default class GameScene extends Phaser.Scene {
         height: this.render.mapOverlaySize.height,
       });
     this.control_input = new PlayerInput(this.input);
+    this.control_input.onClick((isHold, clickPos) => {
+      let gamePos = { x: 0, y: 0 };
+      if (isHold && this.control_camera.tryScreenToGamaPosition(clickPos, gamePos)) {
+        {
+          this.render.addToLayer(this.add.circle(gamePos.x, gamePos.y, 5, 0x66ff66, 1), GameLayersOrderEnum.UI);
+        }
+      }
+    });
+
+    // get player ship
+    const ship = this.render.findGraphicByCondition(f => f instanceof GameObjectDefinition && f.properties?.find(p => p.name === 'isPlayer')?.value);
+    const { x, y } = (ship?.data as GameObjectDefinition).initialPosition;
+    this.control_camera.lookAt(x, y);
   }
 
   update(time: number, delta: number): void {
@@ -75,7 +90,6 @@ export default class GameScene extends Phaser.Scene {
       this.control_input.direction.x * CAMERA_MOVE_SPEED,
       this.control_input.direction.y * CAMERA_MOVE_SPEED)
 
-    this.txt_label.setText([
-    ]);
+    this.txt_label.setText([]);
   }
 }
