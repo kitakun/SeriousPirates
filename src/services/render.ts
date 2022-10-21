@@ -1,7 +1,8 @@
+import { PADDING } from "../constants/view";
 import { IDefinitionGameObject } from "../model/data/IDefinitionGameObject";
-import { GameObjectDefinition } from "../model/data/objectDefinition";
 import WorldDefinition from "../model/data/worldDefinition";
 import { drawCorner, drawCornerRect } from "../utils";
+import { renderCollisionData } from "../utils/render.utils";
 
 const MAP_OVERLAY_INTERNAL_FRAME_SIZE = { width: 666, height: 496 } as ISize;
 
@@ -49,13 +50,13 @@ export default class PiratesRender {
         this.spr_mapBackground = this
             .scene
             .add
-            .tileSprite(0, 0, this.world.worldSizeInPixels.width, this.world.worldSizeInPixels.height, 'game-atlas', 'Море.фон2.png')
+            .tileSprite(0, 0, this.world.worldSizeInPixels.width + xyOffset.x + PADDING, this.world.worldSizeInPixels.height + xyOffset.y + PADDING, 'game-atlas', 'Море.фон2.png')
             .setOrigin(0);
 
         this.spr_waves = this
             .scene
             .add
-            .tileSprite(0, 0, this.world.worldSizeInPixels.width, this.world.worldSizeInPixels.height, 'game-atlas', 'волны1.2.png')
+            .tileSprite(0, 0, this.world.worldSizeInPixels.width + xyOffset.x + PADDING, this.world.worldSizeInPixels.height + xyOffset.y + PADDING, 'game-atlas', 'волны1.2.png')
             .setOrigin(0);
 
         this.layers.push(this.scene.add.layer([this.spr_mapBackground, this.spr_waves]).disableInteractive());
@@ -70,7 +71,7 @@ export default class PiratesRender {
         for (let dataIsland of this.world.islands) {
             const createdIslandGraphics = this.scene.add.sprite(
                 this._xyOffset.x + dataIsland.position.x,
-                this._xyOffset.y + dataIsland.position.y,
+                this._xyOffset.y + dataIsland.position.y + this.world.tileSize.height,
                 'islands',
                 dataIsland.tileName)
                 .setOrigin(0, 1);
@@ -84,9 +85,9 @@ export default class PiratesRender {
 
         for (let dataIsCity of this.world.cities) {
             const createdCityGraphics = this.scene.add.circle(
-                this._xyOffset.x + dataIsCity.position.x + 16,
-                this._xyOffset.y + dataIsCity.position.y - 32,
-                32,
+                this._xyOffset.x + dataIsCity.position.x,
+                this._xyOffset.y + dataIsCity.position.y + this.world.tileSize.height * 0.5,
+                this.world.tileSize.width,
                 0x6666ff
             )
                 .setInteractive({ cursor: 'pointer' })
@@ -109,9 +110,9 @@ export default class PiratesRender {
 
         for (let dataAboutObject of this.world.objects) {
             const createdCityGraphics = this.scene.add.circle(
-                this._xyOffset.x + dataAboutObject.initialPosition.x + 16,
-                this._xyOffset.y + dataAboutObject.initialPosition.y - 32,
-                32,
+                this._xyOffset.x + dataAboutObject.initialPosition.x + this.world.tileSize.width * 0.5,
+                this._xyOffset.y + dataAboutObject.initialPosition.y - this.world.tileSize.height * 0.5,
+                this.world.tileSize.width,
                 0x66ff66
             )
                 .setOrigin(0.5, 0.5);
@@ -137,6 +138,9 @@ export default class PiratesRender {
             .setOrigin(0, 0);
 
         this.layers.push(this.scene.add.layer(this.spr_compass).disableInteractive());
+
+        // debug
+        renderCollisionData(this.world, this.scene, this._xyOffset);
 
         this.applyScales();
     }

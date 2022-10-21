@@ -1,4 +1,3 @@
-import { TILE_SIZE } from "../constants";
 import CityDefinition from "../model/data/cityDefinition";
 import IslandDefinition from "../model/data/islandDefinition";
 import { GameObjectDefinition } from "../model/data/objectDefinition";
@@ -12,8 +11,8 @@ export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string
 
     const world = new WorldDefinition(
         map.properties?.find(f => f.name === 'name')?.value,
-        { width: map.tilewidth, height: map.tileheight },
         { width: map.width, height: map.height },
+        { width: map.tilewidth, height: map.tileheight },
     );
 
     const parsedTilesets = tilesets.map(m => parseTileset(m, map));
@@ -25,7 +24,7 @@ export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string
                     const rawData = base64ToByteArray(layer.data);
                     const filteredData = removeEmptyValuesFromArray(rawData, layer.width);
 
-                    // console.log('Colision parse data 2', filteredData);
+                    world.collisionData.push(...filteredData);
                 }
                 break;
 
@@ -40,7 +39,7 @@ export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string
                         if (!tileName)
                             continue;
 
-                        const newIslandData = new IslandDefinition(tileName, { x: data.x * TILE_SIZE, y: data.y * TILE_SIZE });
+                        const newIslandData = new IslandDefinition(tileName, { x: Math.floor(data.x * world.tileSize.width), y: Math.floor(data.y * world.tileSize.height) });
 
                         world.islands.push(newIslandData);
                     }

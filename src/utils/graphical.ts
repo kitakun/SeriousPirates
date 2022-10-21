@@ -10,11 +10,7 @@ export const drawCornerRect = (
     const halfOfWidth = (frameSize.width - internalScreenSize.width) / 2;
     const halfOfHeight = (frameSize.height - internalScreenSize.height) / 2;
 
-    graphics.strokeRect(
-        halfOfWidth + 5,
-        halfOfHeight + 5,
-        worldSize.width - halfOfWidth * 2,
-        worldSize.height - halfOfHeight * 2);
+    graphics.strokeRect(halfOfWidth + 5, halfOfHeight + 5, worldSize.width, worldSize.height);
 
     return graphics;
 }

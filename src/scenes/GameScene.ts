@@ -38,8 +38,8 @@ export default class GameScene extends Phaser.Scene {
     console.log('Here constructed world', this.world);
 
     const xyOffset = {
-      x: (this.scale.gameSize.width - this.render.mapOverlaySize.width) / 2,
-      y: (this.scale.gameSize.height - this.render.mapOverlaySize.height) / 2,
+      x: Math.floor((this.scale.gameSize.width - this.render.mapOverlaySize.width) / 2),
+      y: Math.floor((this.scale.gameSize.height - this.render.mapOverlaySize.height) / 2),
     } as IVector2;
 
     // graphics

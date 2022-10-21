@@ -1,4 +1,3 @@
-import { TILE_SIZE } from "../../constants";
 import CityDefinition from "./cityDefinition";
 import IslandDefinition from "./islandDefinition";
 import { GameObjectDefinition } from "./objectDefinition";
@@ -16,6 +15,7 @@ export default class WorldDefinition {
     public readonly islands: IslandDefinition[] = [];
     public readonly cities: CityDefinition[] = [];
     public readonly objects: GameObjectDefinition[] = [];
+    public readonly collisionData: { x: number; y: number; val: number; }[] = [];
 
     constructor(
         public readonly worldName: string = 'DefaultWorldName',
@@ -25,10 +25,12 @@ export default class WorldDefinition {
     ) {
     }
 
+    // TODO remove to service/helper/etc from model
     public worldToTilePos(pos: IVector2): IVector2 {
+        console.log(`click on y=${pos.y / this.tileSize.height}`)
         return {
-            x: Number((pos.x / this.tileSize.width).toFixed()),
-            y: Number((pos.y / this.tileSize.height).toFixed()),
+            x: Math.floor(pos.x / this.tileSize.width),
+            y: Math.floor(pos.y / this.tileSize.height),
         }
     }
 }

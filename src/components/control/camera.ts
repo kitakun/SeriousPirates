@@ -1,4 +1,4 @@
-const PADDING = 10;
+import { PADDING } from "../../constants/view";
 
 export default class Camera {
     private _x: number = 0;
@@ -26,7 +26,11 @@ export default class Camera {
         // x,y - actual game start from image, width+height - internal image screen frame size
         this._bounds = gameScreenRectangle;
         // camera to game world bounds
-        this.camera.setBounds(0, 0, this.gameSize.width + PADDING, this.gameSize.height + PADDING);
+        this.camera.setBounds(
+            0,
+            0,
+            this.gameSize.width + this._bounds.width - this.AllowedOffset + PADDING,
+            this.gameSize.height + this._bounds.height - this.AllowedOffset + PADDING);
         this.camera.setZoom(1);
     }
 
@@ -51,11 +55,11 @@ export default class Camera {
     }
 
     public updatePosition(x: number, y: number) {
-        const { width: gameWidth, height: gameHeight } = this.gameSize;
-        const { width: viewWidth, height: viewHeight } = this.scale.gameSize;
+        // this._x += x;
+        // this._y += y;
 
-        this._x = Phaser.Math.Clamp(this._x + x, 0, gameWidth - viewWidth - this.AllowedOffset + PADDING);
-        this._y = Phaser.Math.Clamp(this._y + y, 0, gameHeight - viewHeight - this.AllowedOffset + PADDING);
+        this._x = Phaser.Math.Clamp(this._x + x, 0, this.gameSize.width - this._bounds.width - this.AllowedOffset + PADDING);
+        this._y = Phaser.Math.Clamp(this._y + y, 0, this.gameSize.height - this._bounds.height - this.AllowedOffset + PADDING);
     }
 
     public update(time: number, delta: number): void {
@@ -93,8 +97,8 @@ export default class Camera {
 
         if (convertedPos.x > this._bounds.x
             && convertedPos.y > this._bounds.y
-            && convertedPos.y < this.gameSize.height - this._bounds.y
-            && convertedPos.x < this.gameSize.width - this._bounds.x) {
+            && convertedPos.y < this.gameSize.height + this._bounds.y
+            && convertedPos.x < this.gameSize.width + this._bounds.x) {
             Object.assign(gamePos, convertedPos);
             return true;
         }
@@ -114,8 +118,7 @@ export default class Camera {
         }
         const { width: gameWidth, height: gameHeight } = this.scale.gameSize;
 
-        if (clickPos.x < gameWidth - this._bounds.x
-            && clickPos.y < gameHeight - this._bounds.y) {
+        if (clickPos.x < gameWidth && clickPos.y < gameHeight) {
             Object.assign(gamePos, convertedPos);
             return true;
         }
