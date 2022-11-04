@@ -1,14 +1,16 @@
 import { PADDING } from "../constants/view";
 import { IDefinitionGameObject } from "../model/data/IDefinitionGameObject";
-import WorldDefinition from "../model/data/worldDefinition";
+import City from "../model/dynamic/city";
+import GameWorld, { GameObjectStruct } from "../model/dynamic/gameWorld";
+import Island from "../model/dynamic/island";
 import { drawCorner, drawCornerRect } from "../utils";
-import { renderCollisionData } from "../utils/render.utils";
+import { fillGameObjectState } from "./gameObjects";
 
 const MAP_OVERLAY_INTERNAL_FRAME_SIZE = { width: 666, height: 496 } as ISize;
 
 export default class PiratesRender {
     // data
-    private world!: WorldDefinition;
+    private world!: GameWorld;
 
     // graphics
     private layers: Phaser.GameObjects.Layer[] = [];
@@ -17,8 +19,6 @@ export default class PiratesRender {
     private spr_mapBackground!: Phaser.GameObjects.TileSprite;
     private spr_waves!: Phaser.GameObjects.TileSprite;
     private spr_compass!: Phaser.GameObjects.Sprite;
-
-    private cache_objects!: DataToGraphicStruct[];
 
     public get waveTime(): number {
         return Math.sin((this.scene.game.getTime() / 1000) * 1.6) * 12;
@@ -41,53 +41,53 @@ export default class PiratesRender {
         this.scene.scale.on('resize', this.resize, this);
     }
 
-    public create(world: WorldDefinition, xyOffset: IVector2 = { x: 0, y: 0 }): void {
+    public create(world: GameWorld, xyOffset: IVector2 = { x: 0, y: 0 }): void {
         this.world = world;
         this._xyOffset = xyOffset;
-        this.cache_objects = [];
 
         // background
         this.spr_mapBackground = this
             .scene
             .add
-            .tileSprite(0, 0, this.world.worldSizeInPixels.width + xyOffset.x + PADDING, this.world.worldSizeInPixels.height + xyOffset.y + PADDING, 'game-atlas', 'Море.фон2.png')
+            .tileSprite(0, 0, this.world.worldDefinition.worldSizeInPixels.width + xyOffset.x + PADDING, this.world.worldDefinition.worldSizeInPixels.height + xyOffset.y + PADDING, 'game-atlas', 'Море.фон2.png')
             .setOrigin(0);
 
         this.spr_waves = this
             .scene
             .add
-            .tileSprite(0, 0, this.world.worldSizeInPixels.width + xyOffset.x + PADDING, this.world.worldSizeInPixels.height + xyOffset.y + PADDING, 'game-atlas', 'волны1.2.png')
+            .tileSprite(0, 0, this.world.worldDefinition.worldSizeInPixels.width + xyOffset.x + PADDING, this.world.worldDefinition.worldSizeInPixels.height + xyOffset.y + PADDING, 'game-atlas', 'волны1.2.png')
             .setOrigin(0);
 
         this.layers.push(this.scene.add.layer([this.spr_mapBackground, this.spr_waves]).disableInteractive());
 
         // game world corner
-        drawCornerRect(this.scene, this.world.worldSizeInPixels, this.scene.scale.gameSize, this.mapOverlaySize, 0x5F5F00);
+        drawCornerRect(this.scene, this.world.worldDefinition.worldSizeInPixels, this.scene.scale.gameSize, this.mapOverlaySize, 0x5F5F00);
 
         // game objects
         const gameLayer = this.scene.add.layer();
         this.layers.push(gameLayer);
 
-        for (let dataIsland of this.world.islands) {
+        for (let dataIsland of this.world.worldDefinition.islands) {
             const createdIslandGraphics = this.scene.add.sprite(
                 this._xyOffset.x + dataIsland.position.x,
-                this._xyOffset.y + dataIsland.position.y + this.world.tileSize.height,
+                this._xyOffset.y + dataIsland.position.y + this.world.worldDefinition.tileSize.height,
                 'islands',
                 dataIsland.tileName)
                 .setOrigin(0, 1);
 
-            this.cache_objects.push({
-                data: dataIsland,
+            this.world.objects.push({
+                difinitionData: dataIsland,
                 graphics: gameLayer.add(createdIslandGraphics),
+                gameObject: new Island(),
                 type: GraphicTypeEnum.Sprite,
             });
         }
 
-        for (let dataIsCity of this.world.cities) {
+        for (let dataIsCity of this.world.worldDefinition.cities) {
             const createdCityGraphics = this.scene.add.circle(
                 this._xyOffset.x + dataIsCity.position.x,
-                this._xyOffset.y + dataIsCity.position.y + this.world.tileSize.height * 0.5,
-                this.world.tileSize.width,
+                this._xyOffset.y + dataIsCity.position.y + this.world.worldDefinition.tileSize.height * 0.5,
+                this.world.worldDefinition.tileSize.width,
                 0x6666ff
             )
                 .setInteractive({ cursor: 'pointer' })
@@ -101,25 +101,28 @@ export default class PiratesRender {
                 createdCityGraphics.setScale(1)
             });
 
-            this.cache_objects.push({
-                data: dataIsCity,
+            this.world.objects.push({
+                difinitionData: dataIsCity,
                 graphics: gameLayer.add(createdCityGraphics),
+                gameObject: new City(),
                 type: GraphicTypeEnum.Circle,
             });
         }
 
-        for (let dataAboutObject of this.world.objects) {
-            const createdCityGraphics = this.scene.add.circle(
-                this._xyOffset.x + dataAboutObject.initialPosition.x + this.world.tileSize.width * 0.5,
-                this._xyOffset.y + dataAboutObject.initialPosition.y - this.world.tileSize.height * 0.5,
-                this.world.tileSize.width,
-                0x66ff66
-            )
+        for (let dataAboutObject of this.world.worldDefinition.objects) {
+            const createdCityGraphics = this.scene.add
+                .circle(
+                    this._xyOffset.x + dataAboutObject.initialPosition.x + this.world.worldDefinition.tileSize.width * 0.5,
+                    this._xyOffset.y + dataAboutObject.initialPosition.y - this.world.worldDefinition.tileSize.height * 0.5,
+                    this.world.worldDefinition.tileSize.width,
+                    0x66ff66
+                )
                 .setOrigin(0.5, 0.5);
 
-            this.cache_objects.push({
-                data: dataAboutObject,
+            this.world.objects.push({
+                difinitionData: dataAboutObject,
                 graphics: gameLayer.add(createdCityGraphics),
+                gameObject: fillGameObjectState(dataAboutObject),
                 type: GraphicTypeEnum.Circle,
             });
         }
@@ -152,10 +155,6 @@ export default class PiratesRender {
         return go;
     }
 
-    public findGraphicByCondition(condition: (info: IDefinitionGameObject) => boolean): DataToGraphicStruct | undefined {
-        return this.cache_objects.find(f => condition(f.data));
-    }
-
     private resize(gameSize: Phaser.Structs.Size, baseSize: Phaser.Structs.Size, displaySize: Phaser.Structs.Size) {
         this.applyScales();
     }
@@ -178,13 +177,7 @@ export enum GameLayersOrderEnum {
     UI = 2,
 }
 
-interface DataToGraphicStruct {
-    graphics: Phaser.GameObjects.GameObject;
-    data: IDefinitionGameObject;
-    type: GraphicTypeEnum;
-}
-
-enum GraphicTypeEnum {
+export enum GraphicTypeEnum {
     Unknown = 0,
     Sprite = 1,
     Circle = 2,

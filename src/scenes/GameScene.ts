@@ -4,22 +4,26 @@ import Camera from '../components/control/camera';
 import PlayerInput from '../components/control/playerInput';
 import { GameObjectDefinition } from '../model/data/objectDefinition';
 import WorldDefinition from '../model/data/worldDefinition';
+import GameWorld from '../model/dynamic/gameWorld';
+import { Ship } from '../model/dynamic/ship';
 import { parseTiledMapToWorld } from '../services/loader';
 import PiratesRender, { GameLayersOrderEnum } from '../services/render';
 import { collisionDataToMatrix } from "../utils/pathfind";
 
 export default class GameScene extends Phaser.Scene {
   // data
-  private world!: WorldDefinition;
+  private world!: GameWorld;
 
   // graphics
   private render!: PiratesRender;
   private txt_label!: Phaser.GameObjects.Text;
   private lines: Phaser.GameObjects.GameObject[] = [];
+  private gr_moveToIndicator?: Phaser.GameObjects.GameObject;
 
   // controls
   private control_camera!: Camera;
   private control_input!: PlayerInput;
+  private control_pathfind!: AStarFinder;
 
   constructor() {
     super('GameScene');
@@ -36,8 +40,9 @@ export default class GameScene extends Phaser.Scene {
   }
   create() {
     // data
-    this.world = parseTiledMapToWorld('map', ['glBlocks', 'islandBlocks'], this.game.cache.json);
-    console.log('Here constructed world', this.world);
+    this.world = new GameWorld(
+      parseTiledMapToWorld('map', ['glBlocks', 'islandBlocks'], this.game.cache.json)
+    );
 
     const xyOffset = {
       x: Math.floor((this.scale.gameSize.width - this.render.mapOverlaySize.width) / 2),
@@ -55,8 +60,8 @@ export default class GameScene extends Phaser.Scene {
       this.game,
       this.scale,
       this.cameras.main,
-      this.world.worldSizeInPixels,
-      this.world.tileSize,
+      this.world.worldDefinition.worldSizeInPixels,
+      this.world.worldDefinition.tileSize,
       {
         x: xyOffset.x,
         y: xyOffset.y,
@@ -65,15 +70,13 @@ export default class GameScene extends Phaser.Scene {
       });
     this.control_input = new PlayerInput(this.input);
 
-    // https://github.com/digitsensitive/astar-typescript
-    const collData = collisionDataToMatrix(this.world);
-    const aStarInstance = new AStarFinder({
+    this.control_pathfind = new AStarFinder({
       grid: {
-        matrix: collData
+        matrix: collisionDataToMatrix(this.world.worldDefinition)
       }
     })
 
-    const ship = this.render.findGraphicByCondition(f => f instanceof GameObjectDefinition && f.properties?.find(p => p.name === 'isPlayer')?.value);
+    const ship = this.world.findGameObjectWithPropertry<Ship, Ship>(Ship, p => p.name === 'isPlayer' && !!p.value);
 
     this.control_input.onClick((isHold, rawClickPos) => {
       let gamePos = { x: 0, y: 0 };
@@ -83,20 +86,19 @@ export default class GameScene extends Phaser.Scene {
         && this.control_camera.tryScreenToGamaPosition(rawClickPos, gamePos)
         && this.control_camera.tryScreenToActualGameScreenPosition(rawClickPos, gameScreenPos)) {
         {
-          this.render.addToLayer(this.add.circle(gamePos.x, gamePos.y, 5, 0x66ff66, 1), GameLayersOrderEnum.UI);
+          if (!!this.gr_moveToIndicator) {
+            this.gr_moveToIndicator.destroy();
+            this.gr_moveToIndicator = void 0;
+          }
+
+          this.gr_moveToIndicator = this.render.addToLayer(this.add.circle(gamePos.x, gamePos.y, 5, 0x66ff66, 1), GameLayersOrderEnum.UI);
 
           const clickedOnTile = this.control_camera.worldToTilePos(gameScreenPos);
 
-          this.txt_label.setText([
-            `Click on tile=${JSON.stringify(clickedOnTile)}`,
-            `ShipData=${JSON.stringify(ship?.data)}`
-          ]);
-
           try {
-            const { x, y } = this.control_camera.worldToTilePos(initPos);
+            const { x, y } = this.control_camera.worldToTilePos(ship.gameObject.position);
 
-            let myPathway = aStarInstance.findPath({ x, y }, clickedOnTile);
-            console.log('here your path', myPathway)
+            let myPathway = this.control_pathfind.findPath({ x, y }, clickedOnTile);
 
             this.lines.forEach(lineGo => lineGo.destroy());
 
@@ -114,9 +116,9 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // get player ship
-    const initPos = (ship?.data as GameObjectDefinition).initialPosition;
-    // const { x, y } = this.world.worldToTilePos(initPos);
-    // this.control_camera.lookAt(x, y);
+    console.log('ship object', ship);
+    const { x, y } = this.control_camera.worldToTilePos(ship.gameObject.position);
+    this.control_camera.lookAt(x, y);
   }
 
   update(time: number, delta: number): void {
