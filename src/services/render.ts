@@ -139,9 +139,6 @@ export default class PiratesRender {
 
         this.layers.push(this.scene.add.layer(this.spr_compass).disableInteractive());
 
-        // debug
-        renderCollisionData(this.world, this.scene, this._xyOffset);
-
         this.applyScales();
     }
 
@@ -151,7 +148,7 @@ export default class PiratesRender {
 
     public addToLayer<T extends Phaser.GameObjects.GameObject>(go: T, layer: GameLayersOrderEnum): T {
         this.layers[layer].add(go);
-
+        go.on('destroy', () => this.layers[layer].remove(go));
         return go;
     }
 

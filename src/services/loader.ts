@@ -22,9 +22,8 @@ export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string
             case 'collision':
                 {
                     const rawData = base64ToByteArray(layer.data);
-                    const filteredData = removeEmptyValuesFromArray(rawData, layer.width);
 
-                    world.collisionData.push(...filteredData);
+                    world.collisionData.push(...rawData);
                 }
                 break;
 
@@ -112,7 +111,7 @@ const removeEmptyValuesFromArray = (data: number[], width: number) => {
     return importantValues;
 }
 
-const internalTiledToArrays = (input: { width: number, height: number, data: string }) => {
+export const internalTiledToArrays = (input: { width: number, height: number, data: string }) => {
     const rowData = Array.from(Array(input.height), () => new Array(input.width)) as Number[][];
 
     for (let y = 0; y < input.width; y++) {

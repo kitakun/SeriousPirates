@@ -15,7 +15,7 @@ export default class WorldDefinition {
     public readonly islands: IslandDefinition[] = [];
     public readonly cities: CityDefinition[] = [];
     public readonly objects: GameObjectDefinition[] = [];
-    public readonly collisionData: { x: number; y: number; val: number; }[] = [];
+    public readonly collisionData: number[] = [];
 
     constructor(
         public readonly worldName: string = 'DefaultWorldName',
@@ -26,11 +26,5 @@ export default class WorldDefinition {
     }
 
     // TODO remove to service/helper/etc from model
-    public worldToTilePos(pos: IVector2): IVector2 {
-        console.log(`click on y=${pos.y / this.tileSize.height}`)
-        return {
-            x: Math.floor(pos.x / this.tileSize.width),
-            y: Math.floor(pos.y / this.tileSize.height),
-        }
-    }
+    
 }

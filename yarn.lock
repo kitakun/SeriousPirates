@@ -49,6 +49,13 @@
   "resolved" "https://innroad.jfrog.io/innroad/api/npm/innroad-npm/@types/node/-/node-17.0.31.tgz"
   "version" "17.0.31"
 
+"astar-typescript@^1.2.5":
+  "integrity" "sha512-1ESY+q//Ous6QtW68woigdt5e0hI1DJJ4WtST1r14BuchUBUKKYlq6qLQCy1S8/IWMDnqNp/h79YUVXIlNPwkw=="
+  "resolved" "https://innroad.jfrog.io/innroad/api/npm/innroad-npm/astar-typescript/-/astar-typescript-1.2.5.tgz"
+  "version" "1.2.5"
+  dependencies:
+    "lodash" "4.17.20"
+
 "balanced-match@^1.0.0":
   "integrity" "sha1-ibTRmasr7kneFk6gK4nORi1xt2c= sha512-9Y0g0Q8rmSt+H33DfKv7FOc3v+iRI+o1lbzt8jGcIosYW37IIW/2XVYq5NPdmaD5NQ59Nk26Kl/vZbwW9Fr8vg=="
   "resolved" "https://innroad.jfrog.io/innroad/api/npm/innroad-npm/balanced-match/-/balanced-match-1.0.0.tgz"
@@ -178,6 +185,11 @@
   "version" "1.2.1"
   dependencies:
     "@types/estree" "*"
+
+"lodash@4.17.20":
+  "integrity" "sha512-PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA=="
+  "resolved" "https://innroad.jfrog.io/innroad/api/npm/innroad-npm/lodash/-/lodash-4.17.20.tgz"
+  "version" "4.17.20"
 
 "magic-string@^0.25.7":
   "integrity" "sha512-4CrMT5DOHTDk4HYDlzmwu4FVCcIYI8gauveasrdCu2IKIFOJ3f0v/8MDGJCDL9oD2ppz/Av1b0Nj345H9M+XIA=="

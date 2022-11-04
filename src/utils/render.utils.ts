@@ -1,17 +1,19 @@
 import WorldDefinition from "../model/data/worldDefinition";
 
-export const renderCollisionData = (world: WorldDefinition, scene: Phaser.Scene, xyOffset: IVector2) => {
-    // for (let j = 0; j < world.worldSize.height; j++) {
-    //     for (let i = 0; i < world.worldSize.width; i++) {
-    //         renderRectForTile(i, j, world, scene, xyOffset, 0x00FF00);
-    //     }
-    // }
-
-    for (const coll of world.collisionData) {
-        const { x: tileX, y: tileY } = coll;
-
-        renderRectForTile(tileX, tileY, world, scene, xyOffset, 0x00FF00);
+export const renderCollisionData = (pathGrid: number[][], world: WorldDefinition, scene: Phaser.Scene, xyOffset: IVector2) => {
+    for (let j = 0; j < pathGrid.length; j++) {
+        for (let i = 0; i < pathGrid[j].length; i++) {
+            if (pathGrid[j][i] !== 0) {
+                renderRectForTile(i, j, world, scene, xyOffset, 0x00FF00);
+            }
+        }
     }
+
+    // for (const coll of world.collisionData) {
+    //     const { x: tileX, y: tileY } = coll;
+
+    //     renderRectForTile(tileX, tileY, world, scene, xyOffset, 0x00FF00);
+    // }
 }
 
 const renderRectForTile = (tileX: number, tileY: number, world: WorldDefinition, scene: Phaser.Scene, xyOffset: IVector2, color: number) => {

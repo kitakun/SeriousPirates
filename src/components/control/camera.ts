@@ -20,6 +20,7 @@ export default class Camera {
         private readonly scale: Phaser.Scale.ScaleManager,
         private readonly camera: Phaser.Cameras.Scene2D.Camera,
         private readonly gameSize: ISize,
+        private readonly tileSize: ISize,
         gameScreenRectangle: IRectangle) {
 
         this.camera.setSize(this.game.scale.width, this.game.scale.height);
@@ -124,5 +125,29 @@ export default class Camera {
         }
 
         return false;
+    }
+
+    /**
+     * Convert pixel on monitor to tile position
+     * @param pos monitor pixel coords
+     * @returns tile coords
+     */
+    public worldToTilePos(pos: IVector2): IVector2 {
+        return {
+            x: Math.floor(pos.x / this.tileSize.width),
+            y: Math.floor(pos.y / this.tileSize.height),
+        }
+    }
+
+    /**
+     * Convert tile coords to monitor pixels
+     * @param tilePos tile coords [x,y]
+     * @returns monitor pixels of this tiles
+     */
+    public tilePosToWorld(tilePos: IVector2): IVector2 {
+        return {
+            x: this._bounds.x + tilePos.x * this.tileSize.width + this.tileSize.width,
+            y: this._bounds.y + tilePos.y * this.tileSize.height + this.tileSize.height,
+        }
     }
 }
