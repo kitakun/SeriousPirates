@@ -1,7 +1,6 @@
 import { PADDING } from "../constants/view";
-import { IDefinitionGameObject } from "../model/data/IDefinitionGameObject";
 import City from "../model/dynamic/city";
-import GameWorld, { GameObjectStruct } from "../model/dynamic/gameWorld";
+import GameWorld from "../model/dynamic/gameWorld";
 import Island from "../model/dynamic/island";
 import { drawCorner, drawCornerRect } from "../utils";
 import { fillGameObjectState } from "./gameObjects";
@@ -30,6 +29,10 @@ export default class PiratesRender {
     constructor(
         private readonly scene: Phaser.Scene,
     ) {
+    }
+
+    public get add(): Phaser.GameObjects.GameObjectFactory {
+        return this.scene.add;
     }
 
     public preload(): void {
@@ -78,8 +81,9 @@ export default class PiratesRender {
             this.world.objects.push({
                 difinitionData: dataIsland,
                 graphics: gameLayer.add(createdIslandGraphics),
-                gameObject: new Island(),
+                gameObject: new Island(this.world),
                 type: GraphicTypeEnum.Sprite,
+                gameComponents: [],
             });
         }
 
@@ -104,8 +108,9 @@ export default class PiratesRender {
             this.world.objects.push({
                 difinitionData: dataIsCity,
                 graphics: gameLayer.add(createdCityGraphics),
-                gameObject: new City(),
+                gameObject: new City(this.world),
                 type: GraphicTypeEnum.Circle,
+                gameComponents: [],
             });
         }
 
@@ -122,8 +127,9 @@ export default class PiratesRender {
             this.world.objects.push({
                 difinitionData: dataAboutObject,
                 graphics: gameLayer.add(createdCityGraphics),
-                gameObject: fillGameObjectState(dataAboutObject),
+                gameObject: fillGameObjectState(this.world, dataAboutObject),
                 type: GraphicTypeEnum.Circle,
+                gameComponents: [],
             });
         }
 

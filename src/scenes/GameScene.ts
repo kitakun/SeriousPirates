@@ -2,8 +2,8 @@ import { AStarFinder } from 'astar-typescript';
 import Phaser from 'phaser';
 import Camera from '../components/control/camera';
 import PlayerInput from '../components/control/playerInput';
-import { GameObjectDefinition } from '../model/data/objectDefinition';
-import WorldDefinition from '../model/data/worldDefinition';
+import MoveShipByClick from '../components/GameLogic/moveShipByClick';
+import PathfindMover from '../components/GameLogic/pathfindMover';
 import GameWorld from '../model/dynamic/gameWorld';
 import { Ship } from '../model/dynamic/ship';
 import { parseTiledMapToWorld } from '../services/loader';
@@ -16,9 +16,7 @@ export default class GameScene extends Phaser.Scene {
 
   // graphics
   private render!: PiratesRender;
-  private txt_label!: Phaser.GameObjects.Text;
-  private lines: Phaser.GameObjects.GameObject[] = [];
-  private gr_moveToIndicator?: Phaser.GameObjects.GameObject;
+  private debug_text!: Phaser.GameObjects.Text;
 
   // controls
   private control_camera!: Camera;
@@ -52,9 +50,6 @@ export default class GameScene extends Phaser.Scene {
     // graphics
     this.render.create(this.world, xyOffset);
 
-    // debug stuff
-    this.txt_label = this.render.addToLayer(this.add.text(120, 10, 'hi').setScrollFactor(0).setColor('black'), GameLayersOrderEnum.UI);
-
     // controls
     this.control_camera = new Camera(
       this.game,
@@ -76,49 +71,24 @@ export default class GameScene extends Phaser.Scene {
       }
     })
 
-    const ship = this.world.findGameObjectWithPropertry<Ship, Ship>(Ship, p => p.name === 'isPlayer' && !!p.value);
-
-    this.control_input.onClick((isHold, rawClickPos) => {
-      let gamePos = { x: 0, y: 0 };
-      let gameScreenPos = { x: 0, y: 0 };
-
-      if (isHold
-        && this.control_camera.tryScreenToGamaPosition(rawClickPos, gamePos)
-        && this.control_camera.tryScreenToActualGameScreenPosition(rawClickPos, gameScreenPos)) {
-        {
-          if (!!this.gr_moveToIndicator) {
-            this.gr_moveToIndicator.destroy();
-            this.gr_moveToIndicator = void 0;
-          }
-
-          this.gr_moveToIndicator = this.render.addToLayer(this.add.circle(gamePos.x, gamePos.y, 5, 0x66ff66, 1), GameLayersOrderEnum.UI);
-
-          const clickedOnTile = this.control_camera.worldToTilePos(gameScreenPos);
-
-          try {
-            const { x, y } = this.control_camera.worldToTilePos(ship.gameObject.position);
-
-            let myPathway = this.control_pathfind.findPath({ x, y }, clickedOnTile);
-
-            this.lines.forEach(lineGo => lineGo.destroy());
-
-            for (let i = 0; i < myPathway.length; i++) {
-              const [x, y] = myPathway[i];
-              const wPos = this.control_camera.tilePosToWorld({ x, y });
-              const dot = this.render.addToLayer(this.add.circle(wPos.x, wPos.y, 5, 0xFF0000, 1), GameLayersOrderEnum.UI);
-              this.lines.push(dot);
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        }
-      }
-    });
+    // debug
+    this.debug_text = this.render.addToLayer(this.add.text(25, 25, 'hello').setColor('black').setScrollFactor(0, 0), GameLayersOrderEnum.UI);
 
     // get player ship
-    console.log('ship object', ship);
-    const { x, y } = this.control_camera.worldToTilePos(ship.gameObject.position);
-    this.control_camera.lookAt(x, y);
+    const ship = this.world.findGameObjectWithPropertry(Ship, p => p.name === 'isPlayer' && !!p.value);
+    this.control_camera.lookAtObject(ship.gameObject);
+
+    ship.gameComponents.push(new PathfindMover(
+      this.control_camera,
+      ship));
+    // control player ship with click
+    ship.gameComponents.push(new MoveShipByClick(
+      this.render,
+      this.control_input,
+      this.control_camera,
+      this.control_pathfind,
+      ship,
+    ));
   }
 
   update(time: number, delta: number): void {
@@ -134,5 +104,8 @@ export default class GameScene extends Phaser.Scene {
     this.control_camera.updatePosition(
       this.control_input.direction.x * CAMERA_MOVE_SPEED,
       this.control_input.direction.y * CAMERA_MOVE_SPEED)
+
+    // game
+    this.world.update(time, delta);
   }
 }

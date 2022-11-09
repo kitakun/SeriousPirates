@@ -1,4 +1,5 @@
 import { PADDING } from "../../constants/view";
+import IMovableGameObject from "../../types/gameobjects/IMovableGameObject";
 
 export default class Camera {
     private _x: number = 0;
@@ -55,10 +56,12 @@ export default class Camera {
             gameHeight - viewHeight - this.AllowedOffset + PADDING);
     }
 
-    public updatePosition(x: number, y: number) {
-        // this._x += x;
-        // this._y += y;
+    public lookAtObject(object: IMovableGameObject) {
+        const { x, y } = this.worldToTilePos(this.screenToBoundsPos(object.position));
+        this.lookAt(x, y);
+    }
 
+    public updatePosition(x: number, y: number) {
         this._x = Phaser.Math.Clamp(this._x + x, 0, this.gameSize.width - this._bounds.width - this.AllowedOffset + PADDING);
         this._y = Phaser.Math.Clamp(this._y + y, 0, this.gameSize.height - this._bounds.height - this.AllowedOffset + PADDING);
     }
@@ -114,8 +117,8 @@ export default class Camera {
     */
     public tryScreenToActualGameScreenPosition(clickPos: IVector2, gamePos: IVector2): boolean {
         const convertedPos = {
-            x: clickPos.x - this._bounds.x + this._pan.x + this._x,
-            y: clickPos.y - this._bounds.y + this._pan.y + this._y,
+            x: clickPos.x - this._bounds.x + this._x + this._pan.x,
+            y: clickPos.y - this._bounds.y + this._y + this._pan.y,
         }
         const { width: gameWidth, height: gameHeight } = this.scale.gameSize;
 
@@ -128,14 +131,33 @@ export default class Camera {
     }
 
     /**
+     * Global screen game position to inner game screen position
+     * @param pos raw screen position
+     * @returns internal game screen position
+     */
+    public screenToBoundsPos(pos: IVector2): IVector2 {
+        return {
+            x: pos.x + this._bounds.x,
+            y: pos.y + this._bounds.y,
+        }
+    }
+
+    /**
      * Convert pixel on monitor to tile position
      * @param pos monitor pixel coords
      * @returns tile coords
      */
-    public worldToTilePos(pos: IVector2): IVector2 {
+    public worldToTilePos(pos: IVector2, ignoreBounds = false): IVector2 {
+        if (ignoreBounds) {
+            return {
+                x: Math.max(0, Math.round((pos.x - this._bounds.x) / this.tileSize.width)),
+                y: Math.max(0, Math.round((pos.y - this._bounds.y) / this.tileSize.height)),
+            }
+        }
+
         return {
-            x: Math.floor(pos.x / this.tileSize.width),
-            y: Math.floor(pos.y / this.tileSize.height),
+            x: Math.max(0, Math.round((pos.x) / this.tileSize.width)),
+            y: Math.max(0, Math.round((pos.y) / this.tileSize.height)),
         }
     }
 
@@ -146,8 +168,8 @@ export default class Camera {
      */
     public tilePosToWorld(tilePos: IVector2): IVector2 {
         return {
-            x: this._bounds.x + tilePos.x * this.tileSize.width + this.tileSize.width,
-            y: this._bounds.y + tilePos.y * this.tileSize.height + this.tileSize.height,
+            x: this._bounds.x + tilePos.x * this.tileSize.width,
+            y: this._bounds.y + tilePos.y * this.tileSize.height,
         }
     }
 }
