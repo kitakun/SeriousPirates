@@ -1,0 +1,61 @@
+{
+	"textures": [
+		{
+			"image": "player-ship1",
+			"format": "RGBA8888",
+			"size": {
+				"w": 1052,
+				"h": 1773
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "лодка.икон.1",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 1080,
+						"h": 1080
+					},
+					"spriteSourceSize": {
+						"x": 10,
+						"y": 76,
+						"w": 1052,
+						"h": 888
+					},
+					"frame": {
+						"x": 0,
+						"y": 0,
+						"w": 1052,
+						"h": 888
+					}
+				},
+				{
+					"filename": "лодка.икон.2",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 1080,
+						"h": 1080
+					},
+					"spriteSourceSize": {
+						"x": 24,
+						"y": 76,
+						"w": 1044,
+						"h": 885
+					},
+					"frame": {
+						"x": 0,
+						"y": 888,
+						"w": 1044,
+						"h": 885
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "http://free-tex-packer.com",
+		"version": "0.6.7"
+	}
+}

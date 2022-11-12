@@ -1,0 +1,82 @@
+{
+	"textures": [
+		{
+			"image": "islands",
+			"format": "RGBA8888",
+			"size": {
+				"w": 503,
+				"h": 1397
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "остров1 (2).png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 512,
+						"h": 512
+					},
+					"spriteSourceSize": {
+						"x": 1,
+						"y": 1,
+						"w": 503,
+						"h": 502
+					},
+					"frame": {
+						"x": 0,
+						"y": 0,
+						"w": 503,
+						"h": 502
+					}
+				},
+				{
+					"filename": "остров2.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 512,
+						"h": 512
+					},
+					"spriteSourceSize": {
+						"x": 13,
+						"y": 6,
+						"w": 492,
+						"h": 499
+					},
+					"frame": {
+						"x": 0,
+						"y": 502,
+						"w": 492,
+						"h": 499
+					}
+				},
+				{
+					"filename": "остров3.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 512,
+						"h": 512
+					},
+					"spriteSourceSize": {
+						"x": 16,
+						"y": 83,
+						"w": 474,
+						"h": 396
+					},
+					"frame": {
+						"x": 0,
+						"y": 1001,
+						"w": 474,
+						"h": 396
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "http://free-tex-packer.com",
+		"version": "0.6.7"
+	}
+}
