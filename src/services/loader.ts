@@ -3,10 +3,19 @@ import IslandDefinition from "../model/data/islandDefinition";
 import { GameObjectDefinition } from "../model/data/objectDefinition";
 import WorldDefinition from "../model/data/worldDefinition";
 import { base64ToByteArray } from "../utils";
+import { asyncJsonLoader } from "../utils/async";
 import ImageCollection from "./imageCollection";
 
-export const parseTiledMapToWorld = (mapName: string, tilesetsCacheNames: string[], cache: Phaser.Cache.BaseCache): WorldDefinition => {
-    const map: Tiled.Map = cache.get(mapName);
+const MAP_CACHE_KEY = 'current-map';
+
+
+export const parseTiledMapToWorld = async (
+    mapJsonPath: string,
+    tilesetsCacheNames: string[],
+    cache: Phaser.Cache.BaseCache,
+    loader: Phaser.Loader.LoaderPlugin
+): Promise<WorldDefinition> => {
+    const map: Tiled.Map = await asyncJsonLoader(loader.json(MAP_CACHE_KEY, mapJsonPath));
     const tilesets: Tiled.TilesetObject[] = tilesetsCacheNames.map(m => cache.get(m));
 
     const world = new WorldDefinition(

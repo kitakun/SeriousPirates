@@ -1,11 +1,17 @@
+import { DEFAULT_GAME_MAP_ATLAS, DEFAULT_UI_OVERLAY_RESOURCE } from "../constants/render.constants";
 import { PADDING } from "../constants/view";
+import CityDefinition from "../model/data/cityDefinition";
+import { IDefinitionGameObject } from "../model/data/IDefinitionGameObject";
+import IslandDefinition from "../model/data/islandDefinition";
+import { GameObjectDefinition } from "../model/data/objectDefinition";
 import City from "../model/dynamic/city";
 import GameWorld from "../model/dynamic/gameWorld";
 import Island from "../model/dynamic/island";
 import { drawCorner, drawCornerRect } from "../utils";
-import { fillGameObjectState } from "./gameObjects";
+import { createGameObjectGraphic, fillGameObjectState } from "./gameObjects";
 
-const MAP_OVERLAY_INTERNAL_FRAME_SIZE = { width: 666, height: 496 } as ISize;
+const MAP_OVERLAY_INTERNAL_FRAME_SIZE: ISize = { width: 666, height: 496 };
+const DEFAULT_MAP_ATLAS = DEFAULT_GAME_MAP_ATLAS;
 
 export default class PiratesRender {
     // data
@@ -14,6 +20,9 @@ export default class PiratesRender {
     // graphics
     private layers: Phaser.GameObjects.Layer[] = [];
     private _xyOffset: IVector2 = { x: 0, y: 0 };
+    public get XyOffset() {
+        return this._xyOffset;
+    }
 
     private spr_mapBackground!: Phaser.GameObjects.TileSprite;
     private spr_waves!: Phaser.GameObjects.TileSprite;
@@ -35,30 +44,56 @@ export default class PiratesRender {
         return this.scene.add;
     }
 
-    public preload(): void {
-        this.scene.load.image('mapOverlay', 'assets/UI/mapOverlay.png');
-
-        // reusable sprites
-        this.scene.load.atlas('game-atlas', 'assets/game-atlas/texture.png', 'assets/game-atlas/texture.json');
-
-        this.scene.scale.on('resize', this.resize, this);
-    }
-
-    public create(world: GameWorld, xyOffset: IVector2 = { x: 0, y: 0 }): void {
+    public preload(world: GameWorld, xyOffset: IVector2 = { x: 0, y: 0 }): void {
         this.world = world;
         this._xyOffset = xyOffset;
 
+        // static data
+        this.scene.load.image(DEFAULT_UI_OVERLAY_RESOURCE.key, DEFAULT_UI_OVERLAY_RESOURCE.url);
+
+        // reusable sprites
+        this.scene.load.atlas(DEFAULT_MAP_ATLAS.key, DEFAULT_MAP_ATLAS.url, DEFAULT_MAP_ATLAS.jsonUrl);
+
+        this.scene.scale.on('resize', this.resize, this);
+
+        this.internalGameObjectsFacade(
+            (island) => {
+                console.log('Should preload island object', island)
+            },
+            (city) => {
+                console.log('Should preload city object', city)
+            },
+            (gameObject) => {
+                const createdObjectGraphics = createGameObjectGraphic(this.world, gameObject, this.scene);
+                createdObjectGraphics.preload();
+            }
+        )
+    }
+
+    public create(): void {
         // background
         this.spr_mapBackground = this
             .scene
             .add
-            .tileSprite(0, 0, this.world.worldDefinition.worldSizeInPixels.width + xyOffset.x + PADDING, this.world.worldDefinition.worldSizeInPixels.height + xyOffset.y + PADDING, 'game-atlas', 'Море.фон2.png')
+            .tileSprite(
+                0,
+                0,
+                this.world.worldDefinition.worldSizeInPixels.width + this._xyOffset.x + PADDING,
+                this.world.worldDefinition.worldSizeInPixels.height + this._xyOffset.y + PADDING,
+                DEFAULT_MAP_ATLAS.key,
+                'Море.фон2.png')
             .setOrigin(0);
 
         this.spr_waves = this
             .scene
             .add
-            .tileSprite(0, 0, this.world.worldDefinition.worldSizeInPixels.width + xyOffset.x + PADDING, this.world.worldDefinition.worldSizeInPixels.height + xyOffset.y + PADDING, 'game-atlas', 'волны1.2.png')
+            .tileSprite(
+                0,
+                0,
+                this.world.worldDefinition.worldSizeInPixels.width + this._xyOffset.x + PADDING,
+                this.world.worldDefinition.worldSizeInPixels.height + this._xyOffset.y + PADDING,
+                DEFAULT_MAP_ATLAS.key,
+                'волны1.2.png')
             .setOrigin(0);
 
         this.layers.push(this.scene.add.layer([this.spr_mapBackground, this.spr_waves]).disableInteractive());
@@ -70,71 +105,63 @@ export default class PiratesRender {
         const gameLayer = this.scene.add.layer();
         this.layers.push(gameLayer);
 
-        for (let dataIsland of this.world.worldDefinition.islands) {
-            const createdIslandGraphics = this.scene.add.sprite(
-                this._xyOffset.x + dataIsland.position.x,
-                this._xyOffset.y + dataIsland.position.y + this.world.worldDefinition.tileSize.height,
-                'islands',
-                dataIsland.tileName)
-                .setOrigin(0, 1);
+        this.internalGameObjectsFacade(
+            (dataIsland) => {
+                const createdIslandGraphics = this.scene.add.sprite(
+                    this._xyOffset.x + dataIsland.position.x,
+                    this._xyOffset.y + dataIsland.position.y + this.world.worldDefinition.tileSize.height,
+                    'islands',
+                    dataIsland.tileName)
+                    .setOrigin(0, 1);
 
-            this.world.objects.push({
-                difinitionData: dataIsland,
-                graphics: gameLayer.add(createdIslandGraphics),
-                gameObject: new Island(this.world),
-                type: GraphicTypeEnum.Sprite,
-                gameComponents: [],
-            });
-        }
-
-        for (let dataIsCity of this.world.worldDefinition.cities) {
-            const createdCityGraphics = this.scene.add.circle(
-                this._xyOffset.x + dataIsCity.position.x,
-                this._xyOffset.y + dataIsCity.position.y + this.world.worldDefinition.tileSize.height * 0.5,
-                this.world.worldDefinition.tileSize.width,
-                0x6666ff
-            )
-                .setInteractive({ cursor: 'pointer' })
-                .setAlpha(0.3)
-                .setOrigin(0.5, 0.5);
-
-            createdCityGraphics.on('pointerover', () => {
-                createdCityGraphics.setScale(0.95)
-            })
-            createdCityGraphics.on('pointerout', () => {
-                createdCityGraphics.setScale(1)
-            });
-
-            this.world.objects.push({
-                difinitionData: dataIsCity,
-                graphics: gameLayer.add(createdCityGraphics),
-                gameObject: new City(this.world),
-                type: GraphicTypeEnum.Circle,
-                gameComponents: [],
-            });
-        }
-
-        for (let dataAboutObject of this.world.worldDefinition.objects) {
-            const createdCityGraphics = this.scene.add
-                .circle(
-                    this._xyOffset.x + dataAboutObject.initialPosition.x + this.world.worldDefinition.tileSize.width * 0.5,
-                    this._xyOffset.y + dataAboutObject.initialPosition.y - this.world.worldDefinition.tileSize.height * 0.5,
+                this.world.objects.push({
+                    difinitionData: dataIsland,
+                    graphics: gameLayer.add(createdIslandGraphics),
+                    gameObject: new Island(this.world),
+                    type: GraphicTypeEnum.Sprite,
+                    gameComponents: [],
+                });
+            },
+            (dataIsCity) => {
+                const createdCityGraphics = this.scene.add.circle(
+                    this._xyOffset.x + dataIsCity.position.x,
+                    this._xyOffset.y + dataIsCity.position.y + this.world.worldDefinition.tileSize.height * 0.5,
                     this.world.worldDefinition.tileSize.width,
-                    0x66ff66
+                    0x6666ff
                 )
-                .setOrigin(0.5, 0.5);
+                    .setInteractive({ cursor: 'pointer' })
+                    .setAlpha(0.3)
+                    .setOrigin(0.5, 0.5);
 
-            this.world.objects.push({
-                difinitionData: dataAboutObject,
-                graphics: gameLayer.add(createdCityGraphics),
-                gameObject: fillGameObjectState(this.world, dataAboutObject),
-                type: GraphicTypeEnum.Circle,
-                gameComponents: [],
+                createdCityGraphics.on('pointerover', () => {
+                    createdCityGraphics.setScale(0.95)
+                })
+                createdCityGraphics.on('pointerout', () => {
+                    createdCityGraphics.setScale(1)
+                });
+
+                this.world.objects.push({
+                    difinitionData: dataIsCity,
+                    graphics: gameLayer.add(createdCityGraphics),
+                    gameObject: new City(this.world),
+                    type: GraphicTypeEnum.Circle,
+                    gameComponents: [],
+                });
+            },
+            (dataAboutObject) => {
+                const createdObjectGraphics = createGameObjectGraphic(this.world, dataAboutObject, this.scene);
+
+                this.world.objects.push({
+                    difinitionData: dataAboutObject,
+                    graphics: gameLayer.add(createdObjectGraphics.createObject()),
+                    gameObject: fillGameObjectState(this.world, dataAboutObject),
+                    type: GraphicTypeEnum.Circle,
+                    gameComponents: [],
+                });
             });
-        }
 
         // foreground (UI stuff)
-        this.scene.add.image(0, 0, 'mapOverlay').setOrigin(0, 0).setScrollFactor(0);
+        this.scene.add.image(0, 0, DEFAULT_UI_OVERLAY_RESOURCE.key).setOrigin(0, 0).setScrollFactor(0);
 
         // internal frame color (just to make it looks better)
         drawCorner(this.scene, { ...this._xyOffset, ...this.mapOverlaySize }, 0xb98530).setScrollFactor(0);
@@ -142,7 +169,7 @@ export default class PiratesRender {
         this.spr_compass = this
             .scene
             .add
-            .staticSprite(this._xyOffset.x + 10, this._xyOffset.y + 10, 'game-atlas', 'компас.png')
+            .staticSprite(this._xyOffset.x + 10, this._xyOffset.y + 10, DEFAULT_MAP_ATLAS.key, 'компас.png')
             .setScale(0.2, 0.2)
             .setOrigin(0, 0);
 
@@ -175,7 +202,27 @@ export default class PiratesRender {
         this.spr_mapBackground?.setTileScale(aspectDiff / 4 * aspectRatio);
         this.spr_waves?.setTileScale(aspectDiff / 4 * aspectRatio);
     }
+
+    private internalGameObjectsFacade(
+        islandProcessor: facadeProcessor<IslandDefinition>,
+        cityProcessor: facadeProcessor<CityDefinition>,
+        objectProcessor: facadeProcessor<GameObjectDefinition>,
+    ) {
+        for (let dataIsland of this.world.worldDefinition.islands) {
+            islandProcessor(dataIsland);
+        }
+
+        for (let dataIsCity of this.world.worldDefinition.cities) {
+            cityProcessor(dataIsCity);
+        }
+
+        for (let dataAboutObject of this.world.worldDefinition.objects) {
+            objectProcessor(dataAboutObject);
+        }
+    }
 }
+
+type facadeProcessor<T extends IDefinitionGameObject> = (gameObject: T) => void;
 
 export enum GameLayersOrderEnum {
     Background = 0,

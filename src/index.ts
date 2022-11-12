@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import AwaitLoaderPlugin from 'phaser3-rex-plugins/plugins/awaitloader-plugin';
 import { registerCustomComponents } from "./components";
 import GameScene from './scenes/gameScene';
 
@@ -18,6 +19,15 @@ const gameConfig = {
     target: 60,
     forceSetTimeOut: true
   },
+  plugins: {
+    global: [
+      {
+        key: 'rexAwaitLoader',
+        plugin: AwaitLoaderPlugin,
+        start: true
+      },
+    ]
+  }
 } as Phaser.Types.Core.GameConfig;
 
 new Phaser.Game({ ...gameConfig, scene: [GameScene] });

@@ -2,6 +2,7 @@ import GameWorld from "../../model/dynamic/gameWorld";
 
 export default class IMovableGameObject implements IGameObject {
     protected _position: IVector2 = { x: 0, y: 0 };
+    protected _direction: IVector2 = { x: 0, y: 0 };
     public moveSpeed = 4;
 
     /**
@@ -16,6 +17,14 @@ export default class IMovableGameObject implements IGameObject {
         this.onPositionUpdated && this.onPositionUpdated();
     }
 
+    get direction(): IVector2 {
+        return this._direction;
+    }
+    set direction(newValue: IVector2) {
+        this._direction = newValue;
+        this.onDirectionUpdated && this.onDirectionUpdated();
+    }
+
     constructor(
         protected readonly gameWorld: GameWorld,
         initialPosition: IVector2,
@@ -24,4 +33,5 @@ export default class IMovableGameObject implements IGameObject {
     }
 
     protected onPositionUpdated?(): void;
+    protected onDirectionUpdated?(): void;
 }

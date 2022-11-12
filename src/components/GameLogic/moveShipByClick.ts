@@ -7,6 +7,9 @@ import PlayerInput from "../control/playerInput";
 import { IGameComponent } from "./IGameComponent";
 import PathfindMover from "./pathfindMover";
 
+/** Should we draw pathfind point from start to end? */
+const DRAW_PATHFIND_PATH = true;
+
 export default class MoveShipByClick implements IGameComponent {
     private lines: Phaser.GameObjects.GameObject[] = [];
     private gr_moveToIndicator?: Phaser.GameObjects.GameObject;
@@ -25,6 +28,10 @@ export default class MoveShipByClick implements IGameComponent {
             throw new Error('Can\'t find PathfindMover component in ship')
 
         this.control_input.onClick(this.moveShip.bind(this));
+        if (DRAW_PATHFIND_PATH) {
+            this.mover.addPathIndexHasChanged(this.shipHasMovedByPath.bind(this))
+            this.mover.addStopListener(this.shipHasStopped.bind(this))
+        }
     }
 
     private moveShip(isHold: boolean, rawClickPos: IVector2) {
@@ -41,7 +48,13 @@ export default class MoveShipByClick implements IGameComponent {
                 }
 
                 // final point indicator
-                this.gr_moveToIndicator = this.render.addToLayer(this.render.add.circle(gamePos.x, gamePos.y, 5, 0x66ff66, 1), GameLayersOrderEnum.UI);
+                this.gr_moveToIndicator = this.render.addToLayer(
+                    this
+                        .render
+                        .add
+                        .circle(gamePos.x, gamePos.y, 5, 0x66ff66, 1)
+                        .setDepth(10),
+                    GameLayersOrderEnum.GameObjects);
 
                 const clickedOnTile = this.control_camera.worldToTilePos(gameScreenPos);
 
@@ -51,14 +64,22 @@ export default class MoveShipByClick implements IGameComponent {
 
                     const myPathway = this.control_pathfind.findPath({ x, y }, clickedOnTile);
 
-                    this.lines.forEach(lineGo => lineGo.destroy());
+                    if (DRAW_PATHFIND_PATH) {
+                        this.lines.forEach(lineGo => lineGo.destroy());
+                        this.lines.length = 0;
+                    }
 
+                    // create pathfind path with dots
                     if (myPathway?.length) {
-                        for (let i = 0; i < myPathway.length; i++) {
-                            const [x, y] = myPathway[i];
-                            const wPos = this.control_camera.tilePosToWorld({ x, y });
-                            const dot = this.render.addToLayer(this.render.add.circle(wPos.x, wPos.y, 5, 0xFF0000, 1), GameLayersOrderEnum.UI);
-                            this.lines.push(dot);
+                        if (DRAW_PATHFIND_PATH) {
+                            const tileSize = this.control_camera.tileSize;
+
+                            for (let i = 0; i < myPathway.length; i++) {
+                                const [x, y] = myPathway[i];
+                                const wPos = this.control_camera.tilePosToWorld({ x, y });
+                                const dot = this.render.addToLayer(this.render.add.circle(wPos.x + tileSize.width / 2, wPos.y + tileSize.height / 2, 5, 0xFF0000, 1), GameLayersOrderEnum.GameObjects);
+                                this.lines.push(dot);
+                            }
                         }
 
                         this.mover!.moveByPath(myPathway);
@@ -70,5 +91,17 @@ export default class MoveShipByClick implements IGameComponent {
                 }
             }
         }
+    }
+
+    private shipHasMovedByPath(index: number): void {
+        if (this.lines?.length > 0) {
+            const elementToDelete = this.lines?.shift();
+            elementToDelete?.destroy();
+        }
+    }
+
+    private shipHasStopped(): void {
+        this.lines.forEach(lineGo => lineGo.destroy());
+        this.lines.length = 0;
     }
 }

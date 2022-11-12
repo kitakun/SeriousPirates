@@ -21,7 +21,7 @@ export default class Camera {
         private readonly scale: Phaser.Scale.ScaleManager,
         private readonly camera: Phaser.Cameras.Scene2D.Camera,
         private readonly gameSize: ISize,
-        private readonly tileSize: ISize,
+        public readonly tileSize: ISize,
         gameScreenRectangle: IRectangle) {
 
         this.camera.setSize(this.game.scale.width, this.game.scale.height);

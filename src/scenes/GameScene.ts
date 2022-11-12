@@ -1,4 +1,5 @@
 import { AStarFinder } from 'astar-typescript';
+import Awaitloader from 'phaser3-rex-plugins/plugins/awaitloader.js';
 import Phaser from 'phaser';
 import Camera from '../components/control/camera';
 import PlayerInput from '../components/control/playerInput';
@@ -9,6 +10,7 @@ import { Ship } from '../model/dynamic/ship';
 import { parseTiledMapToWorld } from '../services/loader';
 import PiratesRender, { GameLayersOrderEnum } from '../services/render';
 import { collisionDataToMatrix } from "../utils/pathfind";
+import { asyncJsonLoader } from '../utils/async';
 
 export default class GameScene extends Phaser.Scene {
   // data
@@ -29,26 +31,38 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.render.preload();
-    this.load.atlas('islands', 'assets/game-atlas/islands.png', 'assets/game-atlas/islands.json');
-
-    this.load.json('glBlocks', 'assets/maps/map1_tileset_blockColl.json');
-    this.load.json('islandBlocks', 'assets/maps/map1_tileset_islands1.json');
-    this.load.json('map', 'assets/maps/map1.json');
-  }
-  create() {
-    // data
-    this.world = new GameWorld(
-      parseTiledMapToWorld('map', ['glBlocks', 'islandBlocks'], this.game.cache.json)
-    );
-
     const xyOffset = {
       x: Math.floor((this.scale.gameSize.width - this.render.mapOverlaySize.width) / 2),
       y: Math.floor((this.scale.gameSize.height - this.render.mapOverlaySize.height) / 2),
     } as IVector2;
 
+
+
+    this.load.rexAwait(async (successCallback: Function, failureCallback: Function) => {
+      try {
+        await asyncJsonLoader(this.load.json('glBlocks', 'assets/maps/map1_tileset_blockColl.json'));
+        await asyncJsonLoader(this.load.json('islandBlocks', 'assets/maps/map1_tileset_islands1.json'));
+
+        const loadedWorld = await parseTiledMapToWorld('assets/maps/map1.json', ['glBlocks', 'islandBlocks'], this.game.cache.json, this.load);
+
+        // data
+        this.world = new GameWorld(loadedWorld);
+
+        // preloading
+        this.load.atlas('islands', 'assets/game-atlas/islands.png', 'assets/game-atlas/islands.json');
+
+        // graphic-preloading
+        this.render.preload(this.world, xyOffset);
+
+        successCallback();
+      } catch (err) {
+        failureCallback(err);
+      }
+    });
+  }
+  create() {
     // graphics
-    this.render.create(this.world, xyOffset);
+    this.render.create();
 
     // controls
     this.control_camera = new Camera(
@@ -58,8 +72,8 @@ export default class GameScene extends Phaser.Scene {
       this.world.worldDefinition.worldSizeInPixels,
       this.world.worldDefinition.tileSize,
       {
-        x: xyOffset.x,
-        y: xyOffset.y,
+        x: this.render.XyOffset.x,
+        y: this.render.XyOffset.y,
         width: this.render.mapOverlaySize.width,
         height: this.render.mapOverlaySize.height,
       });
