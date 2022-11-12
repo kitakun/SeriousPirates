@@ -1,0 +1,103 @@
+{
+	"textures": [
+		{
+			"image": "texture",
+			"format": "RGBA8888",
+			"size": {
+				"w": 1912,
+				"h": 868
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "корабль.враж.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 941,
+						"h": 868
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 941,
+						"h": 868
+					},
+					"frame": {
+						"x": 0,
+						"y": 0,
+						"w": 941,
+						"h": 868
+					}
+				},
+				{
+					"filename": "Море.фон2.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 512,
+						"h": 512
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 512,
+						"h": 512
+					},
+					"frame": {
+						"x": 941,
+						"y": 0,
+						"w": 512,
+						"h": 512
+					}
+				},
+				{
+					"filename": "компас.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 459,
+						"h": 482
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 459,
+						"h": 482
+					},
+					"frame": {
+						"x": 1453,
+						"y": 0,
+						"w": 459,
+						"h": 482
+					}
+				},
+				{
+					"filename": "волны1.2.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 455,
+						"h": 314
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 455,
+						"h": 314
+					},
+					"frame": {
+						"x": 1453,
+						"y": 482,
+						"w": 455,
+						"h": 314
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "http://free-tex-packer.com",
+		"version": "0.6.7"
+	}
+}
