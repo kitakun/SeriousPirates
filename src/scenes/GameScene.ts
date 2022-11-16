@@ -69,6 +69,7 @@ export default class GameScene extends Phaser.Scene {
       this.game,
       this.scale,
       this.cameras.main,
+      this.control_input,
       this.world.worldDefinition.worldSizeInPixels,
       this.world.worldDefinition.tileSize,
       {
@@ -77,7 +78,7 @@ export default class GameScene extends Phaser.Scene {
         width: this.render.mapOverlaySize.width,
         height: this.render.mapOverlaySize.height,
       });
-    this.control_input = new PlayerInput(this.input);
+    this.control_input = new PlayerInput(this.sys, this.input);
 
     this.control_pathfind = new AStarFinder({
       grid: {
@@ -115,11 +116,14 @@ export default class GameScene extends Phaser.Scene {
 
     // controls
     const CAMERA_MOVE_SPEED = 10;
+    const controlDirection = this.control_input.direction;
     this.control_camera.updatePosition(
-      this.control_input.direction.x * CAMERA_MOVE_SPEED,
-      this.control_input.direction.y * CAMERA_MOVE_SPEED)
+      controlDirection.x * CAMERA_MOVE_SPEED,
+      controlDirection.y * CAMERA_MOVE_SPEED)
 
     // game
     this.world.update(time, delta);
+
+    this.debug_text.setText([`x=${this.control_input.direction.x} y=${this.control_input.direction.y}`])
   }
 }

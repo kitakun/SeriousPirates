@@ -1,60 +1,43 @@
-export default class PlayerInput {
-    private readonly _events = new Map<InputEventsEnum, Function[]>();
-    private _isHoldClick = false;
+import { IPlayerInput } from "./IPlayerInput";
+import PlayerInputMobile from "./playerInput.mobile";
+import PlayerInputPc from "./playerInput.pc";
 
+export default class PlayerInput implements IPlayerInput {
+    private readonly _playerInput: IPlayerInput;
+
+    // ! idk how to clear direction at frame ends,
+    // ! so mobile controls will clear it at method call via get
     public get direction(): IVector2 {
-        return this._direction;
+        return this._playerInput.direction;
+    }
+    public get controlType(): PlayerControlType {
+        return this._playerInput.controlType;
     }
 
-    private _direction: IVector2 = { x: 0, y: 0 };
-
-    // keyboard
-    private readonly control_arrows!: Phaser.Types.Input.Keyboard.CursorKeys;
-
-    constructor(private readonly input: Phaser.Input.InputPlugin) {
-        this.control_arrows = this.input.keyboard.createCursorKeys();
+    constructor(
+        private readonly systems: Phaser.Scenes.Systems,
+        private readonly input: Phaser.Input.InputPlugin,
+    ) {
+        if (this.systems.game.device.os.desktop) {
+            this._playerInput = new PlayerInputPc(this.input);
+        }
+        else {
+            this._playerInput = new PlayerInputMobile(this.input);
+        }
     }
+
 
     public update(time: number, delta: number): void {
-        this._direction = this.getArrowsDirection();
-
-        const prevIsHoldClick = this._isHoldClick;
-        this._isHoldClick = this.input.activePointer.leftButtonDown();
-        if (this._isHoldClick !== prevIsHoldClick && this._events.has(InputEventsEnum.Click)) {
-            const { x: curX, y: curY } = this.input.activePointer.position;
-            this._events.get(InputEventsEnum.Click)?.forEach(cb => cb(this._isHoldClick, { x: curX, y: curY }));
-        }
+        this._playerInput.update(time, delta);
     }
 
-    public onClick(callback: (isHold: boolean, pos: { x: number, y: number }) => void): void {
-        if (!this._events.has(InputEventsEnum.Click)) {
-            this._events.set(InputEventsEnum.Click, []);
-        }
-
-        this._events.get(InputEventsEnum.Click)?.push(callback);
-    }
-
-    private getArrowsDirection(): IVector2 {
-        let horizontal = 0;
-        let vertical = 0;
-
-        if (this.control_arrows?.left.isDown) {
-            horizontal = -1;
-        } else if (this.control_arrows?.right.isDown) {
-            horizontal = 1;
-        }
-
-        if (this.control_arrows?.up.isDown) {
-            vertical = -1;
-        } else if (this.control_arrows?.down.isDown) {
-            vertical = 1;
-        }
-
-        return { x: horizontal, y: vertical };
+    public addListenOnClick(callback: (isHold: boolean, holdedFor: number, pos: { x: number, y: number }) => void): void {
+        this._playerInput.addListenOnClick(callback);
     }
 }
 
-enum InputEventsEnum {
+export enum PlayerControlType {
     Unknown = 0,
-    Click = 1,
+    Pc = 1,
+    Mobile = 2,
 }

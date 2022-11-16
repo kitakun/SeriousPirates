@@ -27,18 +27,19 @@ export default class MoveShipByClick implements IGameComponent {
         if (!this.mover)
             throw new Error('Can\'t find PathfindMover component in ship')
 
-        this.control_input.onClick(this.moveShip.bind(this));
+        this.control_input.addListenOnClick(this.moveShip.bind(this));
         if (DRAW_PATHFIND_PATH) {
             this.mover.addPathIndexHasChanged(this.shipHasMovedByPath.bind(this))
             this.mover.addStopListener(this.shipHasStopped.bind(this))
         }
     }
 
-    private moveShip(isHold: boolean, rawClickPos: IVector2) {
+    private moveShip(isHold: boolean, clickedFor: number, rawClickPos: IVector2) {
         let gamePos = { x: 0, y: 0 };
         let gameScreenPos = { x: 0, y: 0 };
 
-        if (isHold
+        if (!isHold
+            && clickedFor < 0.15
             && this.control_camera.tryScreenToGamaPosition(rawClickPos, gamePos)
             && this.control_camera.tryScreenToActualGameScreenPosition(rawClickPos, gameScreenPos)) {
             {
