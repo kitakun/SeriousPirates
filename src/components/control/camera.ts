@@ -1,5 +1,6 @@
 import { PADDING } from "../../constants/view";
 import IMovableGameObject from "../../types/gameobjects/IMovableGameObject";
+import PlayerInput, { PlayerControlType } from "./playerInput";
 
 export default class Camera {
     private _x: number = 0;
@@ -20,6 +21,7 @@ export default class Camera {
         private readonly game: Phaser.Game,
         private readonly scale: Phaser.Scale.ScaleManager,
         private readonly camera: Phaser.Cameras.Scene2D.Camera,
+        private readonly playerInput: PlayerInput,
         private readonly gameSize: ISize,
         public readonly tileSize: ISize,
         gameScreenRectangle: IRectangle) {
@@ -67,6 +69,17 @@ export default class Camera {
     }
 
     public update(time: number, delta: number): void {
+        if (this.playerInput?.controlType === PlayerControlType.Pc) {
+            this.panWithMouseTick();
+        } else {
+            this.camera.setScroll(
+                this._x + this._pan.x,
+                this._y + this._pan.y
+            )
+        }
+    }
+
+    private panWithMouseTick() {
         const { width: gameWidth, height: gameHeight } = this.scale.gameSize;
         const { x: mousePosX, y: mousePosY } = this.game.input.activePointer.position;
 
