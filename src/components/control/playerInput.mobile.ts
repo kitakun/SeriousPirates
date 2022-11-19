@@ -61,8 +61,8 @@ export default class PlayerInputMobile implements IPlayerInput {
         }
 
         this._direction = {
-            x: (p.x - p.prevPosition.x) / (p?.camera?.zoom ?? 1) * -1,
-            y: (p.y - p.prevPosition.y) / (p?.camera?.zoom ?? 1) * -1
+            x: (p.x - p.prevPosition.x) / (p?.camera?.zoom ?? 1) * -0.3,
+            y: (p.y - p.prevPosition.y) / (p?.camera?.zoom ?? 1) * -0.3
         }
 
         this._position = {
