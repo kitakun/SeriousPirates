@@ -6,7 +6,7 @@ export default class Camera {
     private _x: number = 0;
     private _y: number = 0;
 
-    private _bounds: IRectangle;
+    private _bounds!: IRectangle;
     private _pan: IVector2 = { x: 0, y: 0 };
 
     public AllowedOffset: number = 100;
@@ -24,17 +24,9 @@ export default class Camera {
         private readonly playerInput: PlayerInput,
         private readonly gameSize: ISize,
         public readonly tileSize: ISize,
-        gameScreenRectangle: IRectangle) {
-
+    ) {
         this.camera.setSize(this.game.scale.width, this.game.scale.height);
-        // x,y - actual game start from image, width+height - internal image screen frame size
-        this._bounds = gameScreenRectangle;
-        // camera to game world bounds
-        this.camera.setBounds(
-            0,
-            0,
-            this.gameSize.width + this._bounds.width - this.AllowedOffset + PADDING,
-            this.gameSize.height + this._bounds.height - this.AllowedOffset + PADDING);
+
         this.camera.setZoom(1);
     }
 
@@ -77,6 +69,17 @@ export default class Camera {
                 this._y + this._pan.y
             )
         }
+    }
+
+    public resize(gameScreenRectangle: IRectangle) {
+        // x,y - actual game start from image, width+height - internal image screen frame size
+        this._bounds = gameScreenRectangle;
+        // camera to game world bounds
+        this.camera.setBounds(
+            0,
+            0,
+            this.gameSize.width + this._bounds.width - this.AllowedOffset + PADDING,
+            this.gameSize.height + this._bounds.height - this.AllowedOffset + PADDING);
     }
 
     private panWithMouseTick() {
