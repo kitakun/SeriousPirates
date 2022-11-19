@@ -1,14 +1,17 @@
 import { AStarFinder } from 'astar-typescript';
-import Awaitloader from 'phaser3-rex-plugins/plugins/awaitloader.js';
 import Phaser from 'phaser';
+// components
 import Camera from '../components/control/camera';
 import PlayerInput from '../components/control/playerInput';
 import MoveShipByClick from '../components/GameLogic/moveShipByClick';
 import PathfindMover from '../components/GameLogic/pathfindMover';
+// data
 import GameWorld from '../model/dynamic/gameWorld';
 import { Ship } from '../model/dynamic/ship';
+// services
 import { parseTiledMapToWorld } from '../services/loader';
 import PiratesRender, { GameLayersOrderEnum } from '../services/render';
+// utils
 import { collisionDataToMatrix } from "../utils/pathfind";
 import { asyncJsonLoader } from '../utils/async';
 
@@ -31,13 +34,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    const xyOffset = {
-      x: Math.floor((this.scale.gameSize.width - this.render.mapOverlaySize.width) / 2),
-      y: Math.floor((this.scale.gameSize.height - this.render.mapOverlaySize.height) / 2),
-    } as IVector2;
-
-
-
     this.load.rexAwait(async (successCallback: Function, failureCallback: Function) => {
       try {
         await asyncJsonLoader(this.load.json('glBlocks', 'assets/maps/map1_tileset_blockColl.json'));
@@ -52,10 +48,11 @@ export default class GameScene extends Phaser.Scene {
         this.load.atlas('islands', 'assets/game-atlas/islands.png', 'assets/game-atlas/islands.json');
 
         // graphic-preloading
-        this.render.preload(this.world, xyOffset);
+        this.render.preload(this.world);
 
         successCallback();
       } catch (err) {
+        console.error(`preload error!`, err);
         failureCallback(err);
       }
     });
@@ -72,12 +69,7 @@ export default class GameScene extends Phaser.Scene {
       this.control_input,
       this.world.worldDefinition.worldSizeInPixels,
       this.world.worldDefinition.tileSize,
-      {
-        x: this.render.XyOffset.x,
-        y: this.render.XyOffset.y,
-        width: this.render.mapOverlaySize.width,
-        height: this.render.mapOverlaySize.height,
-      });
+    );
     this.control_input = new PlayerInput(this.sys, this.input);
 
     this.control_pathfind = new AStarFinder({
@@ -85,9 +77,17 @@ export default class GameScene extends Phaser.Scene {
         matrix: collisionDataToMatrix(this.world.worldDefinition)
       }
     })
+    this.render.addOnResize(() => {
+      this.control_camera.resize({
+        x: this.render.XyOffset.x,
+        y: this.render.XyOffset.y,
+        width: this.render.mapOverlaySize.width,
+        height: this.render.mapOverlaySize.height,
+      })
+    });
 
     // debug
-    this.debug_text = this.render.addToLayer(this.add.text(25, 25, 'hello').setColor('black').setScrollFactor(0, 0), GameLayersOrderEnum.UI);
+    this.debug_text = this.render.addToLayer(this.add.text(25, 25, 'v: 0.1.0').setColor('black').setScrollFactor(0, 0), GameLayersOrderEnum.UI);
 
     // get player ship
     const ship = this.world.findGameObjectWithPropertry(Ship, p => p.name === 'isPlayer' && !!p.value);
@@ -123,7 +123,5 @@ export default class GameScene extends Phaser.Scene {
 
     // game
     this.world.update(time, delta);
-
-    this.debug_text.setText([`x=${this.control_input.direction.x} y=${this.control_input.direction.y}`])
   }
 }

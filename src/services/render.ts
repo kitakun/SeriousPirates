@@ -7,13 +7,15 @@ import { GameObjectDefinition } from "../model/data/objectDefinition";
 import City from "../model/dynamic/city";
 import GameWorld from "../model/dynamic/gameWorld";
 import Island from "../model/dynamic/island";
-import { drawCorner, drawCornerRect } from "../utils";
+import { drawCorner, drawCornerRect, CornerGraphic, CornerRectGraphic } from "../utils";
 import { createGameObjectGraphic, fillGameObjectState } from "./gameObjects";
 
+const DEFAULT_GAME_SIZE: ISize = { width: 800, height: 600 };
 const MAP_OVERLAY_INTERNAL_FRAME_SIZE: ISize = { width: 666, height: 496 };
 const DEFAULT_MAP_ATLAS = DEFAULT_GAME_MAP_ATLAS;
 
 export default class PiratesRender {
+
     // data
     private world!: GameWorld;
 
@@ -27,12 +29,21 @@ export default class PiratesRender {
     private spr_mapBackground!: Phaser.GameObjects.TileSprite;
     private spr_waves!: Phaser.GameObjects.TileSprite;
     private spr_compass!: Phaser.GameObjects.Sprite;
+    private spr_ui_mapOverlay!: Phaser.GameObjects.Image;
+    private spr_internalGameFrame!: CornerGraphic;
+    private spr_gameRectFrame!: CornerRectGraphic;
 
     public get waveTime(): number {
         return Math.sin((this.scene.game.getTime() / 1000) * 1.6) * 12;
     }
     public get mapOverlaySize(): ISize {
-        return MAP_OVERLAY_INTERNAL_FRAME_SIZE;
+        const actualGameSize = this.scene.scale.gameSize;
+        const x = actualGameSize.width / DEFAULT_GAME_SIZE.width;
+        const y = actualGameSize.height / DEFAULT_GAME_SIZE.height;
+        return {
+            width: MAP_OVERLAY_INTERNAL_FRAME_SIZE.width * x,
+            height: MAP_OVERLAY_INTERNAL_FRAME_SIZE.height * y,
+        };
     }
 
     constructor(
@@ -44,9 +55,12 @@ export default class PiratesRender {
         return this.scene.add;
     }
 
-    public preload(world: GameWorld, xyOffset: IVector2 = { x: 0, y: 0 }): void {
+    public preload(world: GameWorld): void {
         this.world = world;
-        this._xyOffset = xyOffset;
+        this._xyOffset = {
+            x: Math.floor((this.scene.scale.gameSize.width - this.mapOverlaySize.width) / 2),
+            y: Math.floor((this.scene.scale.gameSize.height - this.mapOverlaySize.height) / 2),
+        };
 
         // static data
         this.scene.load.image(DEFAULT_UI_OVERLAY_RESOURCE.key, DEFAULT_UI_OVERLAY_RESOURCE.url);
@@ -94,12 +108,18 @@ export default class PiratesRender {
                 this.world.worldDefinition.worldSizeInPixels.height + this._xyOffset.y + PADDING,
                 DEFAULT_MAP_ATLAS.key,
                 'волны1.2.png')
-            .setOrigin(0);
+            .setOrigin(0)
+            .setTileScale(0.4);
 
         this.layers.push(this.scene.add.layer([this.spr_mapBackground, this.spr_waves]).disableInteractive());
 
         // game world corner
-        drawCornerRect(this.scene, this.world.worldDefinition.worldSizeInPixels, this.scene.scale.gameSize, this.mapOverlaySize, 0x5F5F00);
+        this.spr_gameRectFrame = drawCornerRect(
+            this.scene,
+            this.world.worldDefinition.worldSizeInPixels,
+            this.scene.scale.gameSize,
+            this.mapOverlaySize,
+            0x5F5F00);
 
         // game objects
         const gameLayer = this.scene.add.layer();
@@ -161,10 +181,10 @@ export default class PiratesRender {
             });
 
         // foreground (UI stuff)
-        this.scene.add.image(0, 0, DEFAULT_UI_OVERLAY_RESOURCE.key).setOrigin(0, 0).setScrollFactor(0);
+        this.spr_ui_mapOverlay = this.scene.add.image(0, 0, DEFAULT_UI_OVERLAY_RESOURCE.key).setOrigin(0, 0).setScrollFactor(0);
 
         // internal frame color (just to make it looks better)
-        drawCorner(this.scene, { ...this._xyOffset, ...this.mapOverlaySize }, 0xb98530).setScrollFactor(0);
+        this.spr_internalGameFrame = drawCorner(this.scene, { ...this._xyOffset, ...this.mapOverlaySize }, 0xb98530).setScrollFactor(0);
 
         this.spr_compass = this
             .scene
@@ -188,19 +208,42 @@ export default class PiratesRender {
         return go;
     }
 
+    private readonly onResizeEvents: Array<Function> = [];
+    public addOnResize(action: () => void) {
+        this.onResizeEvents.push(action);
+        action();
+    }
+
     private resize(gameSize: Phaser.Structs.Size, baseSize: Phaser.Structs.Size, displaySize: Phaser.Structs.Size) {
         this.applyScales();
     }
 
     private applyScales(): void {
-        const aspectDiff = this.scene.scale.gameSize.width / this.scene.scale.displaySize.width;
-        let { width: gameWidth, height: gameHeight, aspectRatio } = this.scene.scale.gameSize;
+        this._xyOffset = {
+            x: Math.floor((this.scene.scale.gameSize.width - this.mapOverlaySize.width) / 2),
+            y: Math.floor((this.scene.scale.gameSize.height - this.mapOverlaySize.height) / 2),
+        };
+
+        const aspectDiff = this.scene.scale.gameSize.width / this.scene.scale.displaySize.height;
+
+        let {
+            width: gameWidth,
+            height: gameHeight,
+            aspectRatio
+        } = this.scene.scale.gameSize;
 
         this.scene.cameras.resize(gameWidth, gameHeight);
 
         this.spr_compass?.setScale(Math.min(0.4, Math.max(aspectDiff - 0.7, 0.3)));
         this.spr_mapBackground?.setTileScale(aspectDiff / 4 * aspectRatio);
-        this.spr_waves?.setTileScale(aspectDiff / 4 * aspectRatio);
+        this.spr_ui_mapOverlay?.setDisplaySize(gameWidth, gameHeight);
+        this.spr_internalGameFrame?.redraw({ ...this._xyOffset, ...this.mapOverlaySize });
+        this.spr_gameRectFrame?.redraw(
+            this.world.worldDefinition.worldSizeInPixels,
+            this.scene.scale.gameSize,
+            this.mapOverlaySize);
+
+        this.onResizeEvents.forEach(f => f());
     }
 
     private internalGameObjectsFacade(
