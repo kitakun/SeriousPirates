@@ -1,7 +1,7 @@
 import { AStarFinder } from 'astar-typescript';
 import Phaser from 'phaser';
 // components
-import Camera from '../components/control/camera';
+import Camera, { CameraEventsEnum } from '../components/control/camera';
 import PlayerInput from '../components/control/playerInput';
 import MoveShipByClick from '../components/GameLogic/moveShipByClick';
 import PathfindMover from '../components/GameLogic/pathfindMover';
@@ -10,7 +10,7 @@ import GameWorld from '../model/dynamic/gameWorld';
 import { Ship } from '../model/dynamic/ship';
 // services
 import { parseTiledMapToWorld } from '../services/loader';
-import PiratesRender, { GameLayersOrderEnum } from '../services/render';
+import PiratesRender, { GameLayersOrderEnum, RenderEventsEnum } from '../services/render';
 // utils
 import { collisionDataToMatrix } from "../utils/pathfind";
 import { asyncJsonLoader } from '../utils/async';
@@ -70,14 +70,15 @@ export default class GameScene extends Phaser.Scene {
       this.world.worldDefinition.worldSizeInPixels,
       this.world.worldDefinition.tileSize,
     );
-    this.control_input = new PlayerInput(this.sys, this.input);
+    this.control_input = new PlayerInput(this.sys, this.scene, this.input, this.control_camera);
 
     this.control_pathfind = new AStarFinder({
       grid: {
         matrix: collisionDataToMatrix(this.world.worldDefinition)
       }
-    })
-    this.render.addOnResize(() => {
+    });
+
+    this.render.events.on(RenderEventsEnum.OnResize, () => {
       this.control_camera.resize({
         x: this.render.XyOffset.x,
         y: this.render.XyOffset.y,
@@ -87,7 +88,7 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // debug
-    this.debug_text = this.render.addToLayer(this.add.text(25, 25, 'v: 0.1.0').setColor('black').setScrollFactor(0, 0), GameLayersOrderEnum.UI);
+    this.debug_text = this.render.addToLayer(this.add.text(25, 25, 'v: 0.1.1').setColor('black').setScrollFactor(0, 0), GameLayersOrderEnum.UI);
 
     // get player ship
     const ship = this.world.findGameObjectWithPropertry(Ship, p => p.name === 'isPlayer' && !!p.value);

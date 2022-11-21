@@ -1,4 +1,4 @@
-import { PlayerControlType } from "./playerInput";
+import { InputEventsEnum, PlayerControlType } from "./playerInput";
 
 export interface IPlayerInput {
     get controlType(): PlayerControlType;
@@ -6,5 +6,5 @@ export interface IPlayerInput {
 
     update(time: number, delta: number): void;
 
-    addListenOnClick(callback: (isHold: boolean, holdedFor: number, pos: { x: number, y: number }) => void): void;
+    on(event: InputEventsEnum, act: Function): () => void;
 }

@@ -3,7 +3,7 @@ import { GameObjectStruct } from "../../model/dynamic/gameWorld";
 import { Ship } from "../../model/dynamic/ship";
 import PiratesRender, { GameLayersOrderEnum } from "../../services/render";
 import Camera from "../control/camera";
-import PlayerInput from "../control/playerInput";
+import PlayerInput, { InputEventsEnum } from "../control/playerInput";
 import { IGameComponent } from "./IGameComponent";
 import PathfindMover from "./pathfindMover";
 
@@ -27,7 +27,7 @@ export default class MoveShipByClick implements IGameComponent {
         if (!this.mover)
             throw new Error('Can\'t find PathfindMover component in ship')
 
-        this.control_input.addListenOnClick(this.moveShip.bind(this));
+        this.control_input.on(InputEventsEnum.Click, this.moveShip.bind(this));
         if (DRAW_PATHFIND_PATH) {
             this.mover.addPathIndexHasChanged(this.shipHasMovedByPath.bind(this))
             this.mover.addStopListener(this.shipHasStopped.bind(this))

@@ -1,3 +1,4 @@
+import Camera from "./camera";
 import { IPlayerInput } from "./IPlayerInput";
 import PlayerInputMobile from "./playerInput.mobile";
 import PlayerInputPc from "./playerInput.pc";
@@ -16,13 +17,15 @@ export default class PlayerInput implements IPlayerInput {
 
     constructor(
         private readonly systems: Phaser.Scenes.Systems,
+        private readonly scene: Phaser.Scenes.ScenePlugin,
         private readonly input: Phaser.Input.InputPlugin,
+        private readonly camera: Camera,
     ) {
         if (this.systems.game.device.os.desktop) {
             this._playerInput = new PlayerInputPc(this.input);
         }
         else {
-            this._playerInput = new PlayerInputMobile(this.input);
+            this._playerInput = new PlayerInputMobile(this.input, this.scene, this.camera);
         }
     }
 
@@ -31,8 +34,8 @@ export default class PlayerInput implements IPlayerInput {
         this._playerInput.update(time, delta);
     }
 
-    public addListenOnClick(callback: (isHold: boolean, holdedFor: number, pos: { x: number, y: number }) => void): void {
-        this._playerInput.addListenOnClick(callback);
+    public on(event: InputEventsEnum, act: Function) {
+        return this._playerInput.on(event, act);
     }
 }
 
@@ -40,4 +43,9 @@ export enum PlayerControlType {
     Unknown = 0,
     Pc = 1,
     Mobile = 2,
+}
+
+export enum InputEventsEnum {
+    Unknown = 0,
+    Click = 1,
 }

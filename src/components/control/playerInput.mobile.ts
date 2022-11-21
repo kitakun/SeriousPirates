@@ -1,10 +1,12 @@
+import Camera from "./camera";
 import { IPlayerInput } from "./IPlayerInput";
-import { PlayerControlType } from "./playerInput";
+import { InputEventsEnum, PlayerControlType } from "./playerInput";
+import PirateEvents from "../../utils/pirateEvents";
 
 const ZERO = { x: 0, y: 0 };
 
 export default class PlayerInputMobile implements IPlayerInput {
-    private readonly _events = new Map<InputEventsEnum, Function[]>();
+    private readonly _events = new PirateEvents<InputEventsEnum>();
     private _isHoldClick = false;
     private _holdFrom = 0;
 
@@ -23,6 +25,8 @@ export default class PlayerInputMobile implements IPlayerInput {
 
     constructor(
         private readonly input: Phaser.Input.InputPlugin,
+        private readonly scene: Phaser.Scenes.ScenePlugin,
+        private readonly camera: Camera,
     ) {
         console.log("Will use Mobile controls (touch)");
 
@@ -36,9 +40,9 @@ export default class PlayerInputMobile implements IPlayerInput {
             this._holdFrom = time;
         }
 
-        if (this._isHoldClick !== prevIsHoldClick && this._events.has(InputEventsEnum.Click)) {
+        if (this._isHoldClick !== prevIsHoldClick) {
             const { x: curX, y: curY } = this.input.activePointer.position;
-            this._events.get(InputEventsEnum.Click)?.forEach(cb => cb(this._isHoldClick, (time - this._holdFrom) / 1000, { x: curX, y: curY }));
+            this._events.emit(InputEventsEnum.Click, this._isHoldClick, (time - this._holdFrom) / 1000, { x: curX, y: curY });
         }
 
         if (!this._isHoldClick && this._holdFrom > 0) {
@@ -46,12 +50,8 @@ export default class PlayerInputMobile implements IPlayerInput {
         }
     }
 
-    public addListenOnClick(callback: (isHold: boolean, holdedFor: number, pos: { x: number, y: number }) => void): void {
-        if (!this._events.has(InputEventsEnum.Click)) {
-            this._events.set(InputEventsEnum.Click, []);
-        }
-
-        this._events.get(InputEventsEnum.Click)?.push(callback);
+    public on(event: InputEventsEnum, act: Function): () => void {
+        return this._events.on(event, act);
     }
 
     private onPointerMove(p: Phaser.Input.Pointer) {
@@ -61,8 +61,8 @@ export default class PlayerInputMobile implements IPlayerInput {
         }
 
         this._direction = {
-            x: (p.x - p.prevPosition.x) / (p?.camera?.zoom ?? 1) * -1,
-            y: (p.y - p.prevPosition.y) / (p?.camera?.zoom ?? 1) * -1
+            x: (p.x - p.prevPosition.x) / (p?.camera?.zoom ?? 1) * -0.4,
+            y: (p.y - p.prevPosition.y) / (p?.camera?.zoom ?? 1) * -0.4
         }
 
         this._position = {
@@ -70,9 +70,4 @@ export default class PlayerInputMobile implements IPlayerInput {
             y: this._position.y - this._direction.y,
         }
     }
-}
-
-enum InputEventsEnum {
-    Unknown = 0,
-    Click = 1,
 }

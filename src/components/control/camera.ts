@@ -1,5 +1,6 @@
 import { PADDING } from "../../constants/view";
 import IMovableGameObject from "../../types/gameobjects/IMovableGameObject";
+import PirateEvents from "../../utils/pirateEvents";
 import PlayerInput, { PlayerControlType } from "./playerInput";
 
 export default class Camera {
@@ -15,6 +16,11 @@ export default class Camera {
             x: this._x,
             y: this._y,
         }
+    }
+
+    private _events = new PirateEvents<CameraEventsEnum>();
+    public get events(): PirateEvents<CameraEventsEnum> {
+        return this._events;
     }
 
     constructor(
@@ -188,4 +194,8 @@ export default class Camera {
             y: this._bounds.y + tilePos.y * this.tileSize.height,
         }
     }
+}
+
+export enum CameraEventsEnum {
+    Unknown = 0,
 }
