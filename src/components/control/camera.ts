@@ -47,11 +47,11 @@ export default class Camera {
 
 
         this._x = Phaser.Math.Clamp(
-            x - this._bounds.width / 2 - this.AllowedOffset / 2,
+            x * this.tileSize.width - this._bounds.width / 2 - this.AllowedOffset / 2,
             0,
             gameWidth - viewWidth - this.AllowedOffset + PADDING);
         this._y = Phaser.Math.Clamp(
-            y - this._bounds.height / 2 - this.AllowedOffset / 2,
+            y * this.tileSize.height - this._bounds.height / 2 - this.AllowedOffset / 2,
             0,
             gameHeight - viewHeight - this.AllowedOffset + PADDING);
     }

@@ -5,13 +5,14 @@ import PiratesRender, { GameLayersOrderEnum } from "../../services/render";
 import Camera from "../control/camera";
 import PlayerInput, { InputEventsEnum } from "../control/playerInput";
 import { IGameComponent } from "./IGameComponent";
-import PathfindMover from "./pathfindMover";
+import { IUpdatable } from "./IUpdatable";
+import PathfindMover, { PathfindMoverEvents } from "./pathfindMover";
 
 /** Should we draw pathfind point from start to end? */
 const DRAW_PATHFIND_PATH = true;
 
-export default class MoveShipByClick implements IGameComponent {
-    private lines: Phaser.GameObjects.GameObject[] = [];
+export default class MoveShipByClick implements IGameComponent, IUpdatable {
+    private lines: Phaser.GameObjects.Arc[] = [];
     private gr_moveToIndicator?: Phaser.GameObjects.GameObject;
 
     private mover: PathfindMover;
@@ -29,8 +30,17 @@ export default class MoveShipByClick implements IGameComponent {
 
         this.control_input.on(InputEventsEnum.Click, this.moveShip.bind(this));
         if (DRAW_PATHFIND_PATH) {
-            this.mover.addPathIndexHasChanged(this.shipHasMovedByPath.bind(this))
-            this.mover.addStopListener(this.shipHasStopped.bind(this))
+            this.mover.events.on(PathfindMoverEvents.PathIndexHasChanged, this.shipHasMovedByPath.bind(this));
+            this.mover.events.on(PathfindMoverEvents.StopListener, this.shipHasStopped.bind(this));
+        }
+    }
+
+    update(time: number, delta: number): void {
+        if (DRAW_PATHFIND_PATH) {
+            if (this.lines?.length > 0) {
+                // make dots fade on path progress
+                this.lines[0].setAlpha(Math.max(0, 1 - (this.mover.pathLerp * 2)));
+            }
         }
     }
 
@@ -43,10 +53,7 @@ export default class MoveShipByClick implements IGameComponent {
             && this.control_camera.tryScreenToGamaPosition(rawClickPos, gamePos)
             && this.control_camera.tryScreenToActualGameScreenPosition(rawClickPos, gameScreenPos)) {
             {
-                if (!!this.gr_moveToIndicator) {
-                    this.gr_moveToIndicator.destroy();
-                    this.gr_moveToIndicator = void 0;
-                }
+                this.destroyFinalIndicator();
 
                 // final point indicator
                 this.gr_moveToIndicator = this.render.addToLayer(
@@ -85,12 +92,20 @@ export default class MoveShipByClick implements IGameComponent {
 
                         this.mover!.moveByPath(myPathway);
                     } else {
+                        this.destroyFinalIndicator();
                         this.mover!.stop();
                     }
                 } catch (err) {
                     console.error(err);
                 }
             }
+        }
+    }
+
+    private destroyFinalIndicator() {
+        if (!!this.gr_moveToIndicator) {
+            this.gr_moveToIndicator.destroy();
+            this.gr_moveToIndicator = void 0;
         }
     }
 

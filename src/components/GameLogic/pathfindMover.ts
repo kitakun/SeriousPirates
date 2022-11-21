@@ -1,49 +1,39 @@
 import { GameObjectStruct } from "../../model/dynamic/gameWorld";
 import IMovableGameObject from "../../types/gameobjects/IMovableGameObject";
 import { lerp } from "../../utils/mathHelper";
+import PirateEvents from "../../utils/pirateEvents";
 import Camera from "../control/camera";
 import { IGameComponent } from "./IGameComponent";
 import { IUpdatable } from "./IUpdatable";
 
+export enum PathfindMoverEvents {
+    Unknown = 0,
+    /** Subscribe on path index changes */
+    PathIndexHasChanged = 1,
+    /** Subscribe on pathfind stop event */
+    StopListener = 2,
+}
 
 export default class PathfindMover implements IGameComponent, IUpdatable {
 
+    private readonly _events = new PirateEvents<PathfindMoverEvents>();
+    public get events() {
+        return this._events;
+    }
+
     private _pathIndex = 0;
     private _pathLerp = 0;
+    public get pathLerp() {
+        return this._pathLerp;
+    }
     private _pathToFollow: number[][] | null = null;
     private _startMoveFrom?: IVector2;
-
-    // events
-    private _onPathIndexHasChangedEvents: Array<(index: number) => void> = [];
-    private _onStopEvents: Array<() => void> = [];
 
     constructor(
         private readonly camera: Camera,
         private readonly movableObject: GameObjectStruct<IMovableGameObject>,
     ) {
 
-    }
-
-    /**
-     * Subscribe on path index changes
-     * @param cb action to call on index has changed
-     * @returns Disposable method for unsubscription
-     */
-    public addPathIndexHasChanged(cb: (index: number) => void): IParametlessMethod {
-        this._onPathIndexHasChangedEvents.push(cb);
-
-        return () => this._onPathIndexHasChangedEvents.filter(f => f != cb);
-    }
-
-    /**
-     * Subscribe on pathfind stop event
-     * @param cb action to call on stop
-     * @returns Disposable method for unsubscription
-     */
-    public addStopListener(cb: () => void): IParametlessMethod {
-        this._onStopEvents.push(cb);
-
-        return () => this._onStopEvents.filter(f => f != cb);
     }
 
     public update(time: number, delta: number) {
@@ -79,7 +69,7 @@ export default class PathfindMover implements IGameComponent, IUpdatable {
 
                 if (this._pathLerp === 1) {
                     this._pathIndex++;
-                    this._onPathIndexHasChangedEvents.forEach(f => f(this._pathIndex));
+                    this._events.emit(PathfindMoverEvents.PathIndexHasChanged, this._pathIndex);
                     this._startMoveFrom = this.movableObject.gameObject.position;
                     if (this._pathToFollow!.length - 1 <= this._pathIndex) {
                         this.stop();
@@ -110,6 +100,6 @@ export default class PathfindMover implements IGameComponent, IUpdatable {
         this._pathIndex = 0;
         this._pathLerp = 1;
         this._pathToFollow = null;
-        this._onStopEvents.forEach(f => f());
+        this._events.emit(PathfindMoverEvents.StopListener);
     }
 }

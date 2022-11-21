@@ -88,7 +88,7 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // debug
-    this.debug_text = this.render.addToLayer(this.add.text(25, 25, 'v: 0.1.1').setColor('black').setScrollFactor(0, 0), GameLayersOrderEnum.UI);
+    this.debug_text = this.render.addToLayer(this.add.text(25, 25, 'v: 0.1.2').setColor('black').setScrollFactor(0, 0), GameLayersOrderEnum.UI);
 
     // get player ship
     const ship = this.world.findGameObjectWithPropertry(Ship, p => p.name === 'isPlayer' && !!p.value);

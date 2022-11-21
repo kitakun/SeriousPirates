@@ -29,6 +29,7 @@ export default class IMovableGameObject implements IGameObject {
         protected readonly gameWorld: GameWorld,
         initialPosition: IVector2,
     ) {
+        this.position = initialPosition;
         setTimeout(() => this.position = initialPosition);
     }
 

@@ -4,7 +4,7 @@ export class Ship extends IMovableGameObject {
     protected override onPositionUpdated(): void {
         const myData = this.gameWorld.findGameObjectByGameObject(Ship, go => go === this);
 
-        const objectWithPossition = myData.graphics as unknown as IPhaserWithPosition;
+        const objectWithPossition = myData?.graphics as unknown as IPhaserWithPosition;
         if (objectWithPossition && !!objectWithPossition.setPosition) {
             const { x, y } = this.position;
             objectWithPossition.setPosition(x, y);
