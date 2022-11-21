@@ -5,4 +5,7 @@ export default class Island implements IGameObject {
         protected readonly gameWorld: GameWorld,
     ) {
     }
+
+    public onCreated(): void {
+    }
 }

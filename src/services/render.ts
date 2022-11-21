@@ -139,13 +139,16 @@ export default class PiratesRender {
                     dataIsland.tileName)
                     .setOrigin(0, 1);
 
-                this.world.objects.push({
+                const newGo = {
                     difinitionData: dataIsland,
                     graphics: gameLayer.add(createdIslandGraphics),
                     gameObject: new Island(this.world),
                     type: GraphicTypeEnum.Sprite,
                     gameComponents: [],
-                });
+                };
+
+                this.world.objects.push(newGo);
+                newGo.gameObject.onCreated();
             },
             (dataIsCity) => {
                 const createdCityGraphics = this.scene.add.circle(
@@ -154,35 +157,33 @@ export default class PiratesRender {
                     this.world.worldDefinition.tileSize.width,
                     0x6666ff
                 )
-                    .setInteractive({ cursor: 'pointer' })
                     .setAlpha(0.3)
                     .setOrigin(0.5, 0.5);
 
-                createdCityGraphics.on('pointerover', () => {
-                    createdCityGraphics.setScale(0.95)
-                })
-                createdCityGraphics.on('pointerout', () => {
-                    createdCityGraphics.setScale(1)
-                });
-
-                this.world.objects.push({
+                const newGo = {
                     difinitionData: dataIsCity,
                     graphics: gameLayer.add(createdCityGraphics),
                     gameObject: new City(this.world),
                     type: GraphicTypeEnum.Circle,
                     gameComponents: [],
-                });
+                };
+
+                this.world.objects.push(newGo);
+                newGo.gameObject.onCreated();
             },
             (dataAboutObject) => {
                 const createdObjectGraphics = createGameObjectGraphic(this.world, dataAboutObject, this.scene);
 
-                this.world.objects.push({
+                const newGo = {
                     difinitionData: dataAboutObject,
                     graphics: gameLayer.add(createdObjectGraphics.createObject()),
                     gameObject: fillGameObjectState(this.world, dataAboutObject),
                     type: GraphicTypeEnum.Circle,
                     gameComponents: [],
-                });
+                };
+
+                this.world.objects.push(newGo);
+                newGo.gameObject.onCreated();
             });
 
         // foreground (UI stuff)

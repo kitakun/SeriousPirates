@@ -1,6 +1,9 @@
 import IMovableGameObject from "../../types/gameobjects/IMovableGameObject";
 
 export class Ship extends IMovableGameObject {
+    public onCreated(): void {
+    }
+
     protected override onPositionUpdated(): void {
         const myData = this.gameWorld.findGameObjectByGameObject(Ship, go => go === this);
 

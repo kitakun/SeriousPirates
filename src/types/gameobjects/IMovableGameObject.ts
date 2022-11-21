@@ -1,6 +1,6 @@
 import GameWorld from "../../model/dynamic/gameWorld";
 
-export default class IMovableGameObject implements IGameObject {
+export default abstract class IMovableGameObject implements IGameObject {
     protected _position: IVector2 = { x: 0, y: 0 };
     protected _direction: IVector2 = { x: 0, y: 0 };
     public moveSpeed = 4;
@@ -32,6 +32,8 @@ export default class IMovableGameObject implements IGameObject {
         this.position = initialPosition;
         setTimeout(() => this.position = initialPosition);
     }
+
+    abstract onCreated(): void;
 
     protected onPositionUpdated?(): void;
     protected onDirectionUpdated?(): void;
