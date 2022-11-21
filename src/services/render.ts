@@ -8,6 +8,7 @@ import City from "../model/dynamic/city";
 import GameWorld from "../model/dynamic/gameWorld";
 import Island from "../model/dynamic/island";
 import { drawCorner, drawCornerRect, CornerGraphic, CornerRectGraphic } from "../utils";
+import PirateEvents from "../utils/pirateEvents";
 import { createGameObjectGraphic, fillGameObjectState } from "./gameObjects";
 
 const DEFAULT_GAME_SIZE: ISize = { width: 800, height: 600 };
@@ -18,6 +19,10 @@ export default class PiratesRender {
 
     // data
     private world!: GameWorld;
+    private _events = new PirateEvents<RenderEventsEnum>([RenderEventsEnum.OnResize]);
+    public get events(): PirateEvents<RenderEventsEnum> {
+        return this._events;
+    }
 
     // graphics
     private layers: Phaser.GameObjects.Layer[] = [];
@@ -92,8 +97,8 @@ export default class PiratesRender {
             .tileSprite(
                 0,
                 0,
-                this.world.worldDefinition.worldSizeInPixels.width + this._xyOffset.x + PADDING,
-                this.world.worldDefinition.worldSizeInPixels.height + this._xyOffset.y + PADDING,
+                Math.max(this.world.worldDefinition.worldSizeInPixels.width + this._xyOffset.x + PADDING, this.scene.scale.displaySize.width),
+                Math.max(this.world.worldDefinition.worldSizeInPixels.height + this._xyOffset.y + PADDING, this.scene.scale.displaySize.height),
                 DEFAULT_MAP_ATLAS.key,
                 'Море.фон2.png')
             .setOrigin(0);
@@ -104,8 +109,8 @@ export default class PiratesRender {
             .tileSprite(
                 0,
                 0,
-                this.world.worldDefinition.worldSizeInPixels.width + this._xyOffset.x + PADDING,
-                this.world.worldDefinition.worldSizeInPixels.height + this._xyOffset.y + PADDING,
+                Math.max(this.world.worldDefinition.worldSizeInPixels.width + this._xyOffset.x + PADDING, this.scene.scale.displaySize.width),
+                Math.max(this.world.worldDefinition.worldSizeInPixels.height + this._xyOffset.y + PADDING, this.scene.scale.displaySize.height),
                 DEFAULT_MAP_ATLAS.key,
                 'волны1.2.png')
             .setOrigin(0)
@@ -190,7 +195,7 @@ export default class PiratesRender {
             .scene
             .add
             .staticSprite(this._xyOffset.x + 10, this._xyOffset.y + 10, DEFAULT_MAP_ATLAS.key, 'компас.png')
-            .setScale(0.2, 0.2)
+            .setScale(1)
             .setOrigin(0, 0);
 
         this.layers.push(this.scene.add.layer(this.spr_compass).disableInteractive());
@@ -208,17 +213,11 @@ export default class PiratesRender {
         return go;
     }
 
-    private readonly onResizeEvents: Array<Function> = [];
-    public addOnResize(action: () => void) {
-        this.onResizeEvents.push(action);
-        action();
-    }
-
     private resize(gameSize: Phaser.Structs.Size, baseSize: Phaser.Structs.Size, displaySize: Phaser.Structs.Size) {
         this.applyScales();
     }
 
-    private applyScales(): void {
+    public applyScales(): void {
         this._xyOffset = {
             x: Math.floor((this.scene.scale.gameSize.width - this.mapOverlaySize.width) / 2),
             y: Math.floor((this.scene.scale.gameSize.height - this.mapOverlaySize.height) / 2),
@@ -234,7 +233,9 @@ export default class PiratesRender {
 
         this.scene.cameras.resize(gameWidth, gameHeight);
 
-        this.spr_compass?.setScale(Math.min(0.4, Math.max(aspectDiff - 0.7, 0.3)));
+        const compassSize = gameWidth < 780 ? 96 : 128;
+        this.spr_compass?.setDisplaySize(compassSize, compassSize);
+
         this.spr_mapBackground?.setTileScale(aspectDiff / 4 * aspectRatio);
         this.spr_ui_mapOverlay?.setDisplaySize(gameWidth, gameHeight);
         this.spr_internalGameFrame?.redraw({ ...this._xyOffset, ...this.mapOverlaySize });
@@ -243,7 +244,7 @@ export default class PiratesRender {
             this.scene.scale.gameSize,
             this.mapOverlaySize);
 
-        this.onResizeEvents.forEach(f => f());
+        this.events.emit(RenderEventsEnum.OnResize);
     }
 
     private internalGameObjectsFacade(
@@ -277,4 +278,9 @@ export enum GraphicTypeEnum {
     Unknown = 0,
     Sprite = 1,
     Circle = 2,
+}
+
+export enum RenderEventsEnum {
+    Unknown = 0,
+    OnResize = 1,
 }

@@ -9,12 +9,20 @@ export default defineConfig({
         replace({
           'typeof CANVAS_RENDERER': "'true'",
           'typeof WEBGL_RENDERER': "'true'",
-          'typeof EXPERIMENTAL': "'true'",
+          'typeof EXPERIMENTAL': "'false'",
           'typeof PLUGIN_CAMERA3D': "'false'",
           'typeof PLUGIN_FBINSTANT': "'false'",
-          'typeof FEATURE_SOUND': "'true'"
+          'typeof FEATURE_SOUND': "'true'",
+          'preventAssignment': true,
         })
-      ]
+      ],
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return id.toString().split('node_modules/')[1].split('/')[0].toString();
+          }
+        }
+      }
     }
   }
 });

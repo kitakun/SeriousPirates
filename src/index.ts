@@ -10,9 +10,9 @@ const gameConfig = {
   parent: 'game',
   backgroundColor: '#33A5E7',
   scale: {
-    // width: 800,
-    // height: 600,
-    mode: Phaser.Scale.RESIZE,
+    width: 1920,
+    height: 1080,
+    mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
   fps: {
